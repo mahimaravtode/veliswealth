@@ -10,6 +10,7 @@ import {
   getPortfolioLivePrices,
   addSSEClient,
   WATCHLIST_SYMBOLS,
+  getMarketStatusInfo,
 } from '../services/marketService';
 
 function dedupeBySymbol<T extends { symbol: string }>(items: T[]): T[] {
@@ -29,6 +30,15 @@ function dedupeByName<T extends { name: string }>(items: T[]): T[] {
 }
 
 const router = Router();
+
+router.get('/status', (req: Request, res: Response) => {
+  try {
+    const status = getMarketStatusInfo();
+    res.json(status);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
 
 router.get('/schemes', async (req: Request, res: Response) => {
   try {

@@ -23,6 +23,7 @@ export default function Research() {
   const [sentiment, setSentiment] = useState<any>({ score: 50, sentiment: 'Neutral', summary: 'Gathering market intelligence...' });
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const [marketStatus, setMarketStatus] = useState<any>(null);
 
   // Stock search state
   const [stockSearchQuery, setStockSearchQuery] = useState('');
@@ -50,14 +51,16 @@ export default function Research() {
 
   const fetchData = useCallback(async () => {
     try {
-      const [moversData, sentimentData, statsData] = await Promise.all([
+      const [moversData, sentimentData, statsData, statusData] = await Promise.all([
         apiRequest('/market/movers'),
         apiRequest('/ai/sentiment'),
-        apiRequest('/market-stats/stats')
+        apiRequest('/market-stats/stats'),
+        apiRequest('/market/status'),
       ]);
       setMovers(moversData || { indices: [], gainers: [], losers: [] });
       setSentiment(sentimentData || { score: 50, sentiment: 'Neutral', summary: 'Gathering market intelligence...' });
       setStats(statsData || { stockTraded: 0, advances: 0, declines: 0 });
+      setMarketStatus(statusData);
       setLastUpdated(new Date());
     } catch (err) {
       console.error(err);
@@ -221,9 +224,15 @@ export default function Research() {
           <p className="text-muted-foreground">Live NSE/BSE data, stocks, mutual funds &amp; charts powered by Yahoo Finance.</p>
         </div>
         <div className="flex items-center gap-3">
-          <Badge variant="outline" className="h-6 gap-1 border-success/30 text-success bg-success/10">
-            <Activity className="h-3 w-3" /> Live
-          </Badge>
+          {marketStatus?.isOpen ? (
+            <Badge variant="outline" className="h-6 gap-1 border-success/30 text-success bg-success/10">
+              <Activity className="h-3 w-3" /> Live
+            </Badge>
+          ) : (
+            <Badge variant="outline" className="h-6 gap-1 border-warning/30 text-warning bg-warning/10">
+              <Clock className="h-3 w-3" /> Market Closed
+            </Badge>
+          )}
           <span className="text-xs text-muted-foreground flex items-center gap-1">
             <Clock className="h-3 w-3" /> {lastUpdated.toLocaleTimeString()}
           </span>
@@ -725,7 +734,7 @@ export default function Research() {
                             <tr key={scheme.schemeCode || i} className="border-b last:border-0 hover:bg-accent/50 transition-colors">
                               <td className="py-2.5 px-4 text-xs text-muted-foreground">{i + 1}</td>
                               <td className="py-2.5 px-4">
-                                <p className="font-semibold text-xs truncate max-w-[250px]">{scheme.schemeName}</p>
+                                <p className="font-semibold text-xs truncate max-w-62.5">{scheme.schemeName}</p>
                                 <p className="text-[10px] text-muted-foreground">{scheme.schemeCode}</p>
                               </td>
                               <td className="text-right py-2.5 px-4 font-bold text-xs">{formatCurrencyDec(scheme.currentNav || 0)}</td>
@@ -948,11 +957,10 @@ function PutCallRatioCard({ stats, sentiment }: { stats: any; sentiment: any }) 
     { title: 'Portfolio Rebalance', desc: 'Review asset allocation and rebalance if equity has exceeded target weight.', icon: <PieChart className="h-4 w-4" /> },
   ];
 
-  // Gauge angle: 0 (left) to 180 (right) degrees, ratio 0-2 maps to 0-180
   const gaugeAngle = Math.min(Math.max((putCallRatio / 2) * 180, 0), 180);
 
   return (
-    <Card className="border-0 shadow-xl overflow-hidden bg-gradient-to-br from-card to-card/80">
+    <Card className="border-0 shadow-xl overflow-hidden bg-linear-to-br from-card to-card/80">
       <CardHeader className="pb-2">
         <CardTitle className="text-lg flex items-center gap-2">
           <Gauge className="h-5 w-5 text-primary" /> Put/Call Ratio Indicator
@@ -996,7 +1004,7 @@ function PutCallRatioCard({ stats, sentiment }: { stats: any; sentiment: any }) 
               <p className="text-3xl font-black">{putCallRatio}</p>
               <p className={`text-xs font-bold ${danger.color}`}>{danger.level}</p>
             </div>
-            <div className="flex justify-between w-full max-w-[180px] mt-1">
+            <div className="flex justify-between w-full max-w-45 mt-1">
               <span className="text-[9px] text-success">0</span>
               <span className="text-[9px] text-muted-foreground">0.8</span>
               <span className="text-[9px] text-warning">1.2</span>

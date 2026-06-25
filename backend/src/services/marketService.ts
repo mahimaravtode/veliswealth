@@ -1,10 +1,13 @@
 import MarketMover, { IMarketMoverDocument } from '../models/MarketMover';
+import MarketStats from '../models/MarketStats';
 import { fetchTwelveDataQuote } from './twelveDataService';
 import { toTwelveDataSymbol } from './twelveDataSymbolMapper';
 import { fetchYahooQuote, fetchYahooChart, fetchYahooSearch } from './yahooService';
+import { getMarketStatus, hadTradingSessionToday } from '../utils/marketHours';
 import { Response } from 'express';
 
 let isUpdatingDaily = false;
+let lastDataUpdateTime: Date | null = null;
 
 export const WATCHLIST = [
   { symbol: '^NSEI', name: 'Nifty 50', type: 'Index' as const },
@@ -75,31 +78,47 @@ export async function startMarketSimulation() {
   }
 
   setInterval(() => {
+    const status = getMarketStatus();
     const updates: any[] = [];
-    marketDataCache.forEach((data, symbol) => {
-      const movement = (Math.random() - 0.5) * 0.0004;
-      const newPrice = data.price * (1 + movement);
-      const change = newPrice - data.prevClose;
-      const changePercent = (change / data.prevClose) * 100;
-      const updated = {
-        ...data,
-        price: parseFloat(newPrice.toFixed(2)),
-        change: parseFloat(change.toFixed(2)),
-        changePercent: parseFloat(changePercent.toFixed(2)),
-        lastUpdate: new Date()
-      };
-      marketDataCache.set(symbol, updated);
-      updates.push({
-        symbol: updated.symbol,
-        price: updated.price,
-        change: updated.change,
-        changePercent: updated.changePercent
+
+    if (status.isOpen) {
+      // Market is open — apply micro-movements to simulate tick data
+      marketDataCache.forEach((data, symbol) => {
+        const movement = (Math.random() - 0.5) * 0.0004;
+        const newPrice = data.price * (1 + movement);
+        const change = newPrice - data.prevClose;
+        const changePercent = (change / data.prevClose) * 100;
+        const updated = {
+          ...data,
+          price: parseFloat(newPrice.toFixed(2)),
+          change: parseFloat(change.toFixed(2)),
+          changePercent: parseFloat(changePercent.toFixed(2)),
+          lastUpdate: new Date()
+        };
+        marketDataCache.set(symbol, updated);
+        updates.push({
+          symbol: updated.symbol,
+          price: updated.price,
+          change: updated.change,
+          changePercent: updated.changePercent
+        });
       });
-    });
+    }
+    // When market is closed, broadcast last known prices without modification
+
     if (updates.length > 0 && sseClients.size > 0) {
       broadcastToClients({ type: 'ticker_update', data: updates, timestamp: new Date().toISOString() });
     }
   }, 1000);
+}
+
+export function getMarketStatusInfo() {
+  const status = getMarketStatus();
+  return {
+    ...status,
+    lastDataUpdate: lastDataUpdateTime?.toISOString() || null,
+    hasData: marketDataCache.size > 0,
+  };
 }
 
 async function fetchQuoteWithFallback(symbol: string): Promise<any> {
@@ -134,6 +153,10 @@ export async function updateDailyMarketData() {
   }
   isUpdatingDaily = true;
   try {
+    let advances = 0;
+    let declines = 0;
+    let unchanged = 0;
+
     for (const config of WATCHLIST) {
       const origSymbol = config.symbol;
       const q = await fetchQuoteWithFallback(origSymbol);
@@ -143,6 +166,13 @@ export async function updateDailyMarketData() {
       let circuitHit: 'Upper' | 'Lower' | 'None' = 'None';
       if (changePercent >= 5) circuitHit = 'Upper';
       else if (changePercent <= -5) circuitHit = 'Lower';
+
+      // Count market breadth for stocks only (not indices)
+      if (config.type === 'Stock') {
+        if (changePercent > 0) advances++;
+        else if (changePercent < 0) declines++;
+        else unchanged++;
+      }
 
       const updateData: any = {
         symbol: origSymbol,
@@ -182,12 +212,26 @@ export async function updateDailyMarketData() {
       await MarketMover.findOneAndUpdate({ symbol: origSymbol }, updateData, { upsert: true, returnDocument: 'after' });
     }
 
+    // Save market stats (advances/declines)
+    await MarketStats.findOneAndUpdate(
+      {},
+      {
+        date: new Date(),
+        advances,
+        declines,
+        unchanged,
+        stockTraded: advances + declines + unchanged,
+      },
+      { upsert: true, new: true }
+    );
+
     const removed = await MarketMover.deleteMany({ symbol: { $nin: WATCHLIST_SYMBOLS } });
     if (removed.deletedCount > 0) {
       console.log(`Removed ${removed.deletedCount} stale market record(s)`);
     }
 
-    broadcastToClients({ type: 'market_update', timestamp: new Date() });
+    lastDataUpdateTime = new Date();
+    broadcastToClients({ type: 'market_update', timestamp: new Date().toISOString() });
     console.log('Live market update complete.');
   } catch (error) {
     console.error('Market update error:', error);

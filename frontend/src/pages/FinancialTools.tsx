@@ -75,9 +75,9 @@ function SIPCalculator() {
         <Card className="border-0 shadow-md">
           <CardHeader><CardTitle className="text-base">SIP Investment</CardTitle></CardHeader>
           <CardContent className="space-y-5">
-            <SliderInput label="Monthly Investment" value={monthly} onChange={setMonthly} min={500} max={500000} step={500} prefix="₹" />
-            <SliderInput label="Expected Return" value={returns} onChange={setReturns} min={1} max={30} step={0.5} suffix="%" />
-            <SliderInput label="Time Period" value={years} onChange={setYears} min={1} max={40} step={1} suffix=" years" />
+            <NumberInput label="Monthly Investment" value={monthly} onChange={setMonthly} min={500} max={500000} step={500} prefix="₹" />
+            <NumberInput label="Expected Return" value={returns} onChange={setReturns} min={1} max={30} step={0.5} suffix="%" />
+            <NumberInput label="Time Period" value={years} onChange={setYears} min={1} max={40} step={1} suffix=" years" />
           </CardContent>
         </Card>
         <Card className="bg-primary text-primary-foreground border-0 shadow-md">
@@ -153,9 +153,9 @@ function LumpsumCalculator() {
       <Card className="border-0 shadow-md">
         <CardHeader><CardTitle className="text-base">Lumpsum Investment</CardTitle></CardHeader>
         <CardContent className="space-y-5">
-          <SliderInput label="Investment Amount" value={amount} onChange={setAmount} min={10000} max={10000000} step={10000} prefix="₹" />
-          <SliderInput label="Expected Return" value={returns} onChange={setReturns} min={1} max={30} step={0.5} suffix="%" />
-          <SliderInput label="Time Period" value={years} onChange={setYears} min={1} max={30} step={1} suffix=" years" />
+          <NumberInput label="Investment Amount" value={amount} onChange={setAmount} min={10000} max={10000000} step={10000} prefix="₹" />
+          <NumberInput label="Expected Return" value={returns} onChange={setReturns} min={1} max={30} step={0.5} suffix="%" />
+          <NumberInput label="Time Period" value={years} onChange={setYears} min={1} max={30} step={1} suffix=" years" />
         </CardContent>
       </Card>
       <Card className="bg-primary text-primary-foreground border-0 shadow-md">
@@ -213,11 +213,11 @@ function RetirementPlanner() {
       <Card className="border-0 shadow-md">
         <CardHeader><CardTitle className="text-base">Retirement Planning</CardTitle></CardHeader>
         <CardContent className="space-y-5">
-          <SliderInput label="Current Age" value={age} onChange={setAge} min={18} max={60} step={1} suffix=" years" />
-          <SliderInput label="Retirement Age" value={retireAge} onChange={setRetireAge} min={age + 1} max={80} step={1} suffix=" years" />
-          <SliderInput label="Monthly Expenses" value={monthlyExpense} onChange={setMonthlyExpense} min={10000} max={500000} step={5000} prefix="₹" />
-          <SliderInput label="Expected Returns" value={returns} onChange={setReturns} min={1} max={15} step={0.5} suffix="%" />
-          <SliderInput label="Inflation Rate" value={inflation} onChange={setInflation} min={1} max={12} step={0.5} suffix="%" />
+          <NumberInput label="Current Age" value={age} onChange={setAge} min={18} max={60} step={1} suffix=" years" />
+          <NumberInput label="Retirement Age" value={retireAge} onChange={setRetireAge} min={age + 1} max={80} step={1} suffix=" years" />
+          <NumberInput label="Monthly Expenses" value={monthlyExpense} onChange={setMonthlyExpense} min={10000} max={500000} step={5000} prefix="₹" />
+          <NumberInput label="Expected Returns" value={returns} onChange={setReturns} min={1} max={15} step={0.5} suffix="%" />
+          <NumberInput label="Inflation Rate" value={inflation} onChange={setInflation} min={1} max={12} step={0.5} suffix="%" />
         </CardContent>
       </Card>
       <Card className="bg-primary text-primary-foreground border-0 shadow-md">
@@ -269,9 +269,9 @@ function EMICalculator() {
       <Card className="border-0 shadow-md">
         <CardHeader><CardTitle className="text-base">EMI Calculator</CardTitle></CardHeader>
         <CardContent className="space-y-5">
-          <SliderInput label="Loan Amount" value={principal} onChange={setPrincipal} min={100000} max={50000000} step={100000} prefix="₹" />
-          <SliderInput label="Interest Rate" value={rate} onChange={setRate} min={1} max={20} step={0.1} suffix="%" />
-          <SliderInput label="Loan Tenure" value={tenure} onChange={setTenure} min={1} max={30} step={1} suffix=" years" />
+          <NumberInput label="Loan Amount" value={principal} onChange={setPrincipal} min={100000} max={50000000} step={100000} prefix="₹" />
+          <NumberInput label="Interest Rate" value={rate} onChange={setRate} min={1} max={20} step={0.1} suffix="%" />
+          <NumberInput label="Loan Tenure" value={tenure} onChange={setTenure} min={1} max={30} step={1} suffix=" years" />
         </CardContent>
       </Card>
       <Card className="bg-primary text-primary-foreground border-0 shadow-md">
@@ -330,9 +330,9 @@ function PPFCalculator() {
         <Card className="border-0 shadow-md">
           <CardHeader><CardTitle className="text-base">PPF / FD Calculator</CardTitle></CardHeader>
           <CardContent className="space-y-5">
-            <SliderInput label="Annual Investment" value={annual} onChange={setAnnual} min={500} max={150000} step={500} prefix="₹" />
-            <SliderInput label="Interest Rate" value={rate} onChange={setRate} min={1} max={12} step={0.1} suffix="%" />
-            <SliderInput label="Time Period" value={years} onChange={setYears} min={1} max={30} step={1} suffix=" years" />
+            <NumberInput label="Annual Investment" value={annual} onChange={setAnnual} min={500} max={150000} step={500} prefix="₹" />
+            <NumberInput label="Interest Rate" value={rate} onChange={setRate} min={1} max={12} step={0.1} suffix="%" />
+            <NumberInput label="Time Period" value={years} onChange={setYears} min={1} max={30} step={1} suffix=" years" />
           </CardContent>
         </Card>
         <Card className="bg-primary text-primary-foreground border-0 shadow-md">
@@ -392,6 +392,40 @@ function SliderInput({ label, value, onChange, min, max, step, prefix = '', suff
       <Slider
         value={[value]}
         onValueChange={(v) => onChange(v[0])}
+        min={min}
+        max={max}
+        step={step}
+        className="w-full"
+      />
+      <div className="flex justify-between text-xs text-muted-foreground">
+        <span>{prefix}{min.toLocaleString()}{suffix}</span>
+        <span>{prefix}{max.toLocaleString()}{suffix}</span>
+      </div>
+    </div>
+  );
+}
+
+function NumberInput({ label, value, onChange, min, max, step, prefix = '', suffix = '' }: {
+  label: string; value: number; onChange: (v: number) => void;
+  min: number; max: number; step: number; prefix?: string; suffix?: string;
+}) {
+  const handleChange = (valueStr: string) => {
+    const parsed = Number(valueStr.replace(/[^0-9.-]/g, ''));
+    if (Number.isNaN(parsed)) return;
+    const clamped = Math.min(Math.max(parsed, min), max);
+    onChange(clamped);
+  };
+
+  return (
+    <div className="space-y-2">
+      <div className="flex justify-between">
+        <Label className="text-sm">{label}</Label>
+        <span className="text-sm font-bold text-primary">{prefix}{value.toLocaleString()}{suffix}</span>
+      </div>
+      <Input
+        type="number"
+        value={value}
+        onChange={(e) => handleChange(e.target.value)}
         min={min}
         max={max}
         step={step}

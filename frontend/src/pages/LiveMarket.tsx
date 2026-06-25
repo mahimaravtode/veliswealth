@@ -79,6 +79,7 @@ export default function LiveMarket() {
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState('chart');
+  const [marketStatus, setMarketStatus] = useState<any>(null);
 
   // Chart state
   const [selectedSymbol, setSelectedSymbol] = useState<string>('');
@@ -98,8 +99,12 @@ export default function LiveMarket() {
 
   const fetchOverview = useCallback(async () => {
     try {
-      const data = await apiRequest('/yahoo/overview');
-      setOverview(data);
+      const [overviewData, statusData] = await Promise.all([
+        apiRequest('/yahoo/overview'),
+        apiRequest('/market/status'),
+      ]);
+      setOverview(overviewData);
+      setMarketStatus(statusData);
       setLastUpdated(new Date());
     } catch (err) {
       console.error('Failed to fetch overview:', err);
@@ -185,9 +190,15 @@ export default function LiveMarket() {
           <p className="text-muted-foreground">Real-time market data & candlestick charts</p>
         </div>
         <div className="flex items-center gap-3">
-          <Badge variant="outline" className="h-6 gap-1 border-success/30 text-success bg-success/10">
-            <Activity className="h-3 w-3" /> Live
-          </Badge>
+          {marketStatus?.isOpen ? (
+            <Badge variant="outline" className="h-6 gap-1 border-success/30 text-success bg-success/10">
+              <Activity className="h-3 w-3" /> Live
+            </Badge>
+          ) : (
+            <Badge variant="outline" className="h-6 gap-1 border-warning/30 text-warning bg-warning/10">
+              <Clock className="h-3 w-3" /> Market Closed
+            </Badge>
+          )}
           <span className="text-xs text-muted-foreground flex items-center gap-1">
             <Clock className="h-3 w-3" /> {lastUpdated.toLocaleTimeString()}
           </span>

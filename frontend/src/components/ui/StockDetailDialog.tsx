@@ -45,7 +45,7 @@ export default function StockDetailDialog({ symbol, open, onClose }: StockDetail
     setLoading(true);
     setQuote(null);
 
-    apiRequest(`/twelve/quote/${symbol}`)
+    apiRequest(`/yahoo/quote/${symbol}`)
       .then((data) => {
         if (!controller.signal.aborted) {
           setQuote(data || null);
@@ -85,51 +85,55 @@ export default function StockDetailDialog({ symbol, open, onClose }: StockDetail
           <div className="flex justify-center py-10">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
-        ) : quote ? (
+        ) : (
           <div className="space-y-4">
-            <div className="flex items-end gap-3">
-              <p className="text-3xl font-black">{formatCurrency(quote.price)}</p>
-              <span className={`text-sm font-bold ${isPositive ? 'text-success' : 'text-destructive'}`}>
-                {isPositive ? '+' : ''}{quote.change.toFixed(2)} ({quote.changePercent.toFixed(2)}%)
-              </span>
-            </div>
+            {quote && (
+              <div className="flex items-end gap-3">
+                <p className="text-3xl font-black">{formatCurrency(quote.price)}</p>
+                <span className={`text-sm font-bold ${isPositive ? 'text-success' : 'text-destructive'}`}>
+                  {isPositive ? '+' : ''}{quote.change.toFixed(2)} ({quote.changePercent.toFixed(2)}%)
+                </span>
+              </div>
+            )}
 
-            <div className="grid grid-cols-3 gap-2">
-              <div className="bg-muted/50 rounded-lg p-2.5 text-center border border-border/50">
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Open</p>
-                <p className="text-xs font-bold">{formatCurrency(quote.open)}</p>
+            {quote && (
+              <div className="grid grid-cols-3 gap-2">
+                <div className="bg-muted/50 rounded-lg p-2.5 text-center border border-border/50">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Open</p>
+                  <p className="text-xs font-bold">{formatCurrency(quote.open)}</p>
+                </div>
+                <div className="bg-success/5 rounded-lg p-2.5 text-center border border-success/20">
+                  <p className="text-[10px] text-success uppercase tracking-wider font-semibold">High</p>
+                  <p className="text-xs font-bold text-success">{formatCurrency(quote.high)}</p>
+                </div>
+                <div className="bg-destructive/5 rounded-lg p-2.5 text-center border border-destructive/20">
+                  <p className="text-[10px] text-destructive uppercase tracking-wider font-semibold">Low</p>
+                  <p className="text-xs font-bold text-destructive">{formatCurrency(quote.low)}</p>
+                </div>
               </div>
-              <div className="bg-success/5 rounded-lg p-2.5 text-center border border-success/20">
-                <p className="text-[10px] text-success uppercase tracking-wider font-semibold">High</p>
-                <p className="text-xs font-bold text-success">{formatCurrency(quote.high)}</p>
-              </div>
-              <div className="bg-destructive/5 rounded-lg p-2.5 text-center border border-destructive/20">
-                <p className="text-[10px] text-destructive uppercase tracking-wider font-semibold">Low</p>
-                <p className="text-xs font-bold text-destructive">{formatCurrency(quote.low)}</p>
-              </div>
-            </div>
+            )}
 
             <div className="rounded-xl border border-border/50 bg-card p-1">
               <CandlestickChart symbol={symbol} height={320} />
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
-              <Card className="border border-border/50 bg-muted/30 shadow-none">
-                <CardContent className="p-3 space-y-1">
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Volume</p>
-                  <p className="text-sm font-bold">{formatNumber(quote.volume)}</p>
-                </CardContent>
-              </Card>
-              <Card className="border border-border/50 bg-muted/30 shadow-none">
-                <CardContent className="p-3 space-y-1">
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Currency</p>
-                  <p className="text-sm font-bold">{quote.currency}</p>
-                </CardContent>
-              </Card>
-            </div>
+            {quote && (
+              <div className="grid grid-cols-2 gap-2">
+                <Card className="border border-border/50 bg-muted/30 shadow-none">
+                  <CardContent className="p-3 space-y-1">
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Volume</p>
+                    <p className="text-sm font-bold">{formatNumber(quote.volume)}</p>
+                  </CardContent>
+                </Card>
+                <Card className="border border-border/50 bg-muted/30 shadow-none">
+                  <CardContent className="p-3 space-y-1">
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Currency</p>
+                    <p className="text-sm font-bold">{quote.currency}</p>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
           </div>
-        ) : (
-          <p className="text-center text-muted-foreground py-6">No data available for {symbol}</p>
         )}
       </DialogContent>
     </Dialog>

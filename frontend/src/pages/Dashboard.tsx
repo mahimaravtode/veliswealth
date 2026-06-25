@@ -18,20 +18,23 @@ export default function Dashboard() {
   const { summary, holdings, loading, fetchPortfolio } = usePortfolioStore();
   const [movers, setMovers] = useState<any>({ indices: [], gainers: [], losers: [] });
   const [netWorth, setNetWorth] = useState<any>({ totalAssets: 0, totalLiabilities: 0, netWorth: 0 });
-  const [stats, setStats] = useState<any>({ advances: 0, declines: 0 });
+  const [stats, setStats] = useState<any>({ advances: 0, declines: 0 });  
+  const [marketStatus, setMarketStatus] = useState<any>(null);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchMarketData = useCallback(async () => {
     try {
-      const [moversData, netWorthData, statsData] = await Promise.all([
+      const [moversData, netWorthData, statsData, statusData] = await Promise.all([
         apiRequest('/market/movers'),
         apiRequest('/net-worth/net-worth'),
         apiRequest('/market-stats/stats'),
+        apiRequest('/market/status'),
       ]);
       setMovers(moversData || { indices: [], gainers: [], losers: [] });
       setNetWorth(netWorthData || { totalAssets: 0, totalLiabilities: 0, netWorth: 0 });
       setStats(statsData || { advances: 0, declines: 0 });
+      setMarketStatus(statusData);
       setLastUpdated(new Date());
     } catch (err) {
       console.error(err);
@@ -79,12 +82,23 @@ export default function Dashboard() {
           <p className="text-muted-foreground">Real-time market data and portfolio insights.</p>
         </div>
         <div className="flex items-center gap-3">
-          <Badge variant="outline" className="h-6 gap-1 border-success/30 text-success bg-success/10">
-            <Activity className="h-3 w-3" /> Live
-          </Badge>
+          {marketStatus?.isOpen ? (
+            <Badge variant="outline" className="h-6 gap-1 border-success/30 text-success bg-success/10">
+              <Activity className="h-3 w-3" /> Live
+            </Badge>
+          ) : (
+            <Badge variant="outline" className="h-6 gap-1 border-warning/30 text-warning bg-warning/10">
+              <Clock className="h-3 w-3" /> Market Closed
+            </Badge>
+          )}
           <span className="text-xs text-muted-foreground flex items-center gap-1">
             <Clock className="h-3 w-3" /> {lastUpdated.toLocaleTimeString()}
           </span>
+          {marketStatus?.lastDataUpdate && (
+            <span className="text-xs text-muted-foreground">
+              Data as of {new Date(marketStatus.lastDataUpdate).toLocaleTimeString()}
+            </span>
+          )}
           <Button variant="outline" size="sm" onClick={handleRefresh} disabled={refreshing}>
             <RefreshCw className={`h-4 w-4 mr-1 ${refreshing ? 'animate-spin' : ''}`} /> Refresh
           </Button>
@@ -156,7 +170,7 @@ export default function Dashboard() {
             <CardTitle>Asset Allocation</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-[280px] w-full">
+            <div className="h-70 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie data={allocationData} innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">

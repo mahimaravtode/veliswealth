@@ -64,8 +64,10 @@ export default function LiveWatchlist() {
     }
   );
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const [marketStatus, setMarketStatus] = useState<any>(null);
   const [fetching, setFetching] = useState(false);
   const chartCache = useRef<Map<string, { date: string; close: number }[]>>(new Map());
+  const isMarketOpen = marketStatus?.isOpen === true;
 
   const fetchQuotes = useCallback(async () => {
     if (watchlistSymbols.length === 0) {
@@ -106,6 +108,8 @@ export default function LiveWatchlist() {
   }, [watchlistSymbols]);
 
   useMarketStream(useCallback((msg: any) => {
+    if (!isMarketOpen) return;
+
     if (msg.type === 'market_update') {
       fetchQuotes();
     } else if (msg.type === 'ticker_update' && msg.data) {
@@ -123,7 +127,7 @@ export default function LiveWatchlist() {
       }));
       setLastUpdated(new Date());
     }
-  }, [fetchQuotes]));
+  }, [fetchQuotes, isMarketOpen]));
 
   useEffect(() => {
     let cancelled = false;
@@ -136,6 +140,18 @@ export default function LiveWatchlist() {
   useEffect(() => {
     localStorage.setItem('watchlistSymbols', JSON.stringify(watchlistSymbols));
   }, [watchlistSymbols]);
+
+  useEffect(() => {
+    const fetchStatus = async () => {
+      try {
+        const status = await apiRequest('/market/status');
+        setMarketStatus(status);
+      } catch {}
+    };
+    fetchStatus();
+    const interval = setInterval(fetchStatus, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleSearch = useCallback(async (query: string) => {
     setSearchQuery(query);
@@ -185,9 +201,15 @@ export default function LiveWatchlist() {
             <Star className="h-4 w-4 text-warning" /> Live Watchlist
           </CardTitle>
           <div className="flex items-center gap-2">
-            <Badge variant="outline" className="h-5 gap-1 border-success/30 text-success bg-success/10 text-[10px]">
-              <Activity className="h-2.5 w-2.5" /> Live
-            </Badge>
+            {marketStatus?.isOpen ? (
+              <Badge variant="outline" className="h-5 gap-1 border-success/30 text-success bg-success/10 text-[10px]">
+                <Activity className="h-2.5 w-2.5" /> Live
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="h-5 gap-1 border-warning/30 text-warning bg-warning/10 text-[10px]">
+                <Clock className="h-2.5 w-2.5" /> Closed
+              </Badge>
+            )}
             <span className="text-[10px] text-muted-foreground flex items-center gap-1">
               <Clock className="h-2.5 w-2.5" /> {lastUpdated.toLocaleTimeString()}
             </span>
@@ -247,7 +269,7 @@ export default function LiveWatchlist() {
         ) : (
           <div className="space-y-1.5">
             {quotes.map((q) => (
-              <WatchlistRow key={q.symbol} quote={q} onRemove={removeFromWatchlist} />
+              <WatchlistRow key={q.symbol} quote={q} onRemove={removeFromWatchlist} isMarketOpen={isMarketOpen} />
             ))}
           </div>
         )}
@@ -256,22 +278,38 @@ export default function LiveWatchlist() {
   );
 }
 
-function WatchlistRow({ quote, onRemove }: { quote: Quote; onRemove: (s: string) => void }) {
+function WatchlistRow({
+  quote,
+  onRemove,
+  isMarketOpen,
+}: {
+  quote: Quote;
+  onRemove: (s: string) => void;
+  isMarketOpen: boolean;
+}) {
   const [flash, setFlash] = useState<'up' | 'down' | null>(null);
   const prevPriceRef = useRef(quote.price);
 
   useEffect(() => {
-    if (quote.price > prevPriceRef.current) {
+    if (!isMarketOpen) {
+      setFlash(null);
+      prevPriceRef.current = quote.price;
+      return;
+    }
+
+    const previousPrice = prevPriceRef.current;
+    prevPriceRef.current = quote.price;
+
+    if (quote.price > previousPrice) {
       setFlash('up');
       const timer = setTimeout(() => setFlash(null), 800);
       return () => clearTimeout(timer);
-    } else if (quote.price < prevPriceRef.current) {
+    } else if (quote.price < previousPrice) {
       setFlash('down');
       const timer = setTimeout(() => setFlash(null), 800);
       return () => clearTimeout(timer);
     }
-    prevPriceRef.current = quote.price;
-  }, [quote.price]);
+  }, [quote.price, isMarketOpen]);
 
   const isPositive = (quote.changePercent || 0) >= 0;
   const chartData = (quote.history || []).map(h => ({

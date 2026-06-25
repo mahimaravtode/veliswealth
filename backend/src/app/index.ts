@@ -82,7 +82,7 @@ app.get('/', (req: Request, res: Response) => {
   });
 });
 
-// Cron Job
+// Cron Job — runs every 5 minutes on weekdays, but only fetches fresh data during market hours
 cron.schedule('*/5 * * * 1-5', () => {
   const now = new Date();
   const istOffset = 5.5 * 60 * 60 * 1000;
@@ -90,14 +90,18 @@ cron.schedule('*/5 * * * 1-5', () => {
   const hours = ist.getUTCHours();
   const minutes = ist.getUTCMinutes();
   const marketMinutes = hours * 60 + minutes;
+  // Market hours: 9:15 AM (555) to 3:30 PM (930) IST
   if (marketMinutes >= 555 && marketMinutes <= 930) {
     updateDailyMarketData();
   }
-});   
+});
 
+// Always fetch data once on startup (even outside market hours) so we have last closing prices
+// In dev mode, also start the simulation for SSE streaming
 if (process.env.NODE_ENV !== 'production') {
+    updateDailyMarketData().then(() => startMarketSimulation());
+} else {
     updateDailyMarketData();
-    startMarketSimulation();
 }
 
 const PORT = process.env.PORT || 5000;
