@@ -110,7 +110,7 @@ function TransactionForm({ open, onOpenChange, editTxn, onSaved }: {
       return;
     }
 
-    const direction = form.type === 'income' ? 'in' : 'out';
+    const direction: 'in' | 'out' = form.type === 'income' ? 'in' : 'out';
     const payload = {
       ...form,
       direction,
@@ -482,8 +482,8 @@ function AnalyticsPanel() {
                 <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                 <XAxis dataKey="month" tick={{ fontSize: 12 }} />
                 <YAxis tick={{ fontSize: 12 }} tickFormatter={v => formatCompact(v)} />
-                <RechartsTooltip formatter={(v: number) => formatCurrency(v)} />
-                <Legend />
+                   <RechartsTooltip formatter={(v) => formatCurrency(Number(v))} />
+                   <Legend />
                 <Area type="monotone" dataKey="income" stackId="1" stroke="#10b981" fill="#10b981" fillOpacity={0.2} name="Income" />
                 <Area type="monotone" dataKey="expense" stackId="2" stroke="#ef4444" fill="#ef4444" fillOpacity={0.2} name="Expense" />
                 <Area type="monotone" dataKey="investment" stackId="3" stroke="#2563eb" fill="#2563eb" fillOpacity={0.2} name="Investment" />
@@ -511,7 +511,7 @@ function AnalyticsPanel() {
                       <Cell key={i} fill={entry.color} />
                     ))}
                   </Pie>
-                  <RechartsTooltip formatter={(v: number) => formatCurrency(v)} />
+                  <RechartsTooltip formatter={(v) => formatCurrency(Number(v))} />
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
@@ -531,10 +531,9 @@ function AnalyticsPanel() {
                 <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                 <XAxis dataKey="date" tick={{ fontSize: 10 }} />
                 <YAxis tick={{ fontSize: 12 }} tickFormatter={v => formatCompact(v)} />
-                <RechartsTooltip formatter={(v: number) => formatCurrency(v)} />
+                <RechartsTooltip formatter={(v) => formatCurrency(Number(v))} />
                 <Legend />
-                <Bar dataKey="inflow" fill="#10b981" name="Inflow" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="outflow" fill="#ef4444" name="Outflow" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="amount" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -942,7 +941,7 @@ export default function Transactions() {
                       <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                       <XAxis dataKey="month" tick={{ fontSize: 11 }} />
                       <YAxis tick={{ fontSize: 11 }} tickFormatter={v => formatCompact(v)} />
-                      <RechartsTooltip formatter={(v: number) => formatCurrency(v)} />
+                      <RechartsTooltip formatter={(v) => formatCurrency(Number(v))} />
                       <Area type="monotone" dataKey="income" stroke="#10b981" fill="#10b981" fillOpacity={0.15} name="Income" />
                       <Area type="monotone" dataKey="expense" stroke="#ef4444" fill="#ef4444" fillOpacity={0.15} name="Expense" />
                     </AreaChart>

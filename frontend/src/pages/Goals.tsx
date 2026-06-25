@@ -283,7 +283,7 @@ export default function Goals() {
                       <Pie data={categoryData} cx="50%" cy="50%" innerRadius={40} outerRadius={65} paddingAngle={3} dataKey="value">
                         {categoryData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                       </Pie>
-                      <Tooltip formatter={(v: number) => formatCurrency(v)} />
+                      <Tooltip formatter={(v) => formatCurrency(v as number)} />
                     </PieChart>
                   </ResponsiveContainer>
                 </CardContent>

@@ -31,7 +31,7 @@ export default function CandleChart() {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searching, setSearching] = useState(false);
   const [candleData, setCandleData] = useState<any>(null);
-  const searchTimeoutRef = React.useRef<NodeJS.Timeout>();
+  const searchTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const handleSearch = useCallback((query: string) => {
     setSearchQuery(query);

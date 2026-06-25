@@ -100,7 +100,7 @@ function SIPCalculator() {
                 <Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={70} paddingAngle={3} dataKey="value">
                   {pieData.map((_, i) => <Cell key={i} fill={COLORS[i]} />)}
                 </Pie>
-                <Tooltip formatter={(v: number) => formatCurrency(v)} />
+                <Tooltip formatter={(v) => formatCurrency(v as number)} />
               </PieChart>
             </ResponsiveContainer>
           </CardContent>
@@ -120,7 +120,7 @@ function SIPCalculator() {
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis dataKey="year" tick={{ fontSize: 11 }} />
               <YAxis tick={{ fontSize: 11 }} tickFormatter={v => formatCurrency(v)} />
-              <Tooltip formatter={(v: number) => formatCurrency(v)} />
+              <Tooltip formatter={(v) => formatCurrency(v as number)} />
               <Legend />
               <Area type="monotone" dataKey="invested" stroke="#f59e0b" fill="#f59e0b" fillOpacity={0.3} name="Invested" />
               <Area type="monotone" dataKey="value" stroke="#14b8a6" fill="url(#sipGrad)" strokeWidth={2} name="Value" />
@@ -178,7 +178,7 @@ function LumpsumCalculator() {
               <Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={70} paddingAngle={3} dataKey="value">
                 {pieData.map((_, i) => <Cell key={i} fill={COLORS[i]} />)}
               </Pie>
-              <Tooltip formatter={(v: number) => formatCurrency(v)} />
+              <Tooltip formatter={(v) => formatCurrency(v as number)} />
             </PieChart>
           </ResponsiveContainer>
         </CardContent>
@@ -294,7 +294,7 @@ function EMICalculator() {
               <Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={70} paddingAngle={3} dataKey="value">
                 {pieData.map((_, i) => <Cell key={i} fill={COLORS[i]} />)}
               </Pie>
-              <Tooltip formatter={(v: number) => formatCurrency(v)} />
+              <Tooltip formatter={(v) => formatCurrency(v as number)} />
             </PieChart>
           </ResponsiveContainer>
         </CardContent>
@@ -367,7 +367,7 @@ function PPFCalculator() {
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis dataKey="year" tick={{ fontSize: 11 }} />
               <YAxis tick={{ fontSize: 11 }} tickFormatter={v => formatCurrency(v)} />
-              <Tooltip formatter={(v: number) => formatCurrency(v)} />
+              <Tooltip formatter={(v) => formatCurrency(v as number)} />
               <Legend />
               <Area type="monotone" dataKey="invested" stroke="#f59e0b" fill="#f59e0b" fillOpacity={0.3} name="Invested" />
               <Area type="monotone" dataKey="balance" stroke="#14b8a6" fill="url(#ppfGrad)" strokeWidth={2} name="Balance" />

@@ -4,7 +4,7 @@ import { API_BASE } from '@/lib/config';
 export function useMarketStream(onMessage?: (data: Record<string, unknown>) => void) {
   const [connected, setConnected] = useState(false);
   const eventSourceRef = useRef<EventSource | null>(null);
-  const reconnectTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const reconnectTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
     const onMsg = onMessage;

@@ -16,8 +16,9 @@ import {
   ArrowDownCircle, Calculator, ChevronDown, ChevronUp, Wallet,
   PiggyBank, CheckCircle2, Clock, TrendingUp, Calendar, CreditCard,
   Target, AlertCircle, Coins, BarChart3, Loader2, CircleDollarSign,
-  BadgeCheck, History, X, Timer, CircleDollarSign as DollarIcon, Badge
+  BadgeCheck, History, X, Timer, CircleDollarSign as DollarIcon
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { useLoanStore, type Loan } from '@/store/useLoanStore';
 
 const COLORS = ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899'];
@@ -787,7 +788,7 @@ function LoanCard({ loan, expanded, onToggle, onDelete, onPrepay, onSimulate, on
                         <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                         <XAxis dataKey="label" tick={{ fontSize: 11 }} />
                         <YAxis tick={{ fontSize: 11 }} tickFormatter={v => formatCompact(v)} />
-                        <Tooltip formatter={(v: number) => [`${formatCurrency(v)}`, '']} />
+                        <Tooltip formatter={(v) => [`${formatCurrency(v as number)}`, '']} />
                         <Area type="monotone" dataKey="balance" stroke="#2563eb" fill="url(#balanceGrad)" strokeWidth={2} />
                       </AreaChart>
                     </ResponsiveContainer>
@@ -799,10 +800,10 @@ function LoanCard({ loan, expanded, onToggle, onDelete, onPrepay, onSimulate, on
                     <ResponsiveContainer width="100%" height={280}>
                       <PieChart>
                         <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={3} dataKey="value"
-                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
+                          label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}>
                           {pieData.map((_, i) => <Cell key={i} fill={COLORS[i]} />)}
                         </Pie>
-                        <Tooltip formatter={(v: number) => [`${formatCurrency(v)}`, '']} />
+                        <Tooltip formatter={(v) => [`${formatCurrency(v as number)}`, '']} />
                       </PieChart>
                     </ResponsiveContainer>
                   </CardContent>
@@ -815,10 +816,10 @@ function LoanCard({ loan, expanded, onToggle, onDelete, onPrepay, onSimulate, on
                     <ResponsiveContainer width="100%" height={280}>
                       <PieChart>
                         <Pie data={paidPieData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={3} dataKey="value"
-                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
+                          label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}>
                           {paidPieData.map((_, i) => <Cell key={i} fill={COLORS[i]} />)}
                         </Pie>
-                        <Tooltip formatter={(v: number) => [`${formatCurrency(v)}`, '']} />
+                        <Tooltip formatter={(v) => [`${formatCurrency(v as number)}`, '']} />
                       </PieChart>
                     </ResponsiveContainer>
                   </CardContent>
@@ -831,7 +832,7 @@ function LoanCard({ loan, expanded, onToggle, onDelete, onPrepay, onSimulate, on
                         <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                         <XAxis dataKey="label" tick={{ fontSize: 11 }} />
                         <YAxis tick={{ fontSize: 11 }} tickFormatter={v => formatCompact(v)} />
-                        <Tooltip formatter={(v: number) => [`${formatCurrency(v)}`, '']} />
+                        <Tooltip formatter={(v) => [`${formatCurrency(v as number)}`, '']} />
                         <Legend />
                         <Area type="monotone" dataKey="cumPrincipal" stackId="1" stroke="#2563eb" fill="#2563eb" fillOpacity={0.6} name="Principal" />
                         <Area type="monotone" dataKey="cumInterest" stackId="1" stroke="#ef4444" fill="#ef4444" fillOpacity={0.6} name="Interest" />
@@ -848,7 +849,7 @@ function LoanCard({ loan, expanded, onToggle, onDelete, onPrepay, onSimulate, on
                       <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                       <XAxis dataKey="year" tick={{ fontSize: 11 }} />
                       <YAxis tick={{ fontSize: 11 }} tickFormatter={v => formatCompact(v)} />
-                      <Tooltip formatter={(v: number) => [`${formatCurrency(v)}`, '']} />
+                      <Tooltip formatter={(v) => [`${formatCurrency(v as number)}`, '']} />
                       <Legend />
                       <Bar dataKey="principal" fill="#2563eb" name="Principal" radius={[2, 2, 0, 0]} />
                       <Bar dataKey="interest" fill="#ef4444" name="Interest" radius={[2, 2, 0, 0]} />
@@ -864,7 +865,7 @@ function LoanCard({ loan, expanded, onToggle, onDelete, onPrepay, onSimulate, on
                       <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                       <XAxis dataKey="year" tick={{ fontSize: 11 }} />
                       <YAxis tick={{ fontSize: 11 }} tickFormatter={v => formatCompact(v)} />
-                      <Tooltip formatter={(v: number) => [`${formatCurrency(v)}`, '']} />
+                      <Tooltip formatter={(v) => [`${formatCurrency(v as number)}`, '']} />
                       <Line type="monotone" dataKey="balance" stroke="#8b5cf6" strokeWidth={2.5} dot={{ fill: '#8b5cf6', r: 4 }} name="Remaining Balance" />
                     </LineChart>
                   </ResponsiveContainer>

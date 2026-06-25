@@ -45,8 +45,8 @@ export default function Research() {
   const [detailSymbol, setDetailSymbol] = useState<string | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
 
-  const stockSearchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const mfSearchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const stockSearchTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const mfSearchTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const fetchData = useCallback(async () => {
     try {
@@ -411,7 +411,7 @@ export default function Research() {
                                 <YAxis domain={['auto', 'auto']} tick={{ fontSize: 9 }} stroke="hsl(var(--muted-foreground))" />
                                 <ChartTooltip
                                   contentStyle={{ fontSize: 10, borderRadius: 6, backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }}
-                                  formatter={(v: number) => [`${formatCurrencyDec(v)}`, 'Close']}
+                                  formatter={(v) => [`${formatCurrencyDec(v as number)}`, 'Close']}
                                 />
                                 <Area type="monotone" dataKey="close" stroke={stockSearchQuote.changePercent >= 0 ? '#22c55e' : '#ef4444'} fill="url(#searchGrad)" strokeWidth={2} dot={false} />
                               </AreaChart>
@@ -1023,7 +1023,7 @@ function PutCallRatioCard({ stats, sentiment }: { stats: any; sentiment: any }) 
                   <YAxis domain={[0.5, 1.5]} tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
                   <ChartTooltip
                     contentStyle={{ fontSize: 10, borderRadius: 6, backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }}
-                    formatter={(v: number) => [`${v.toFixed(2)}`, 'P/C Ratio']}
+                    formatter={(v) => [`${Number(v).toFixed(2)}`, 'P/C Ratio']}
                   />
                   {/* Danger zone lines */}
                   <CartesianGrid horizontal={false} vertical={false} />

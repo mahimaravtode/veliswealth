@@ -724,10 +724,7 @@ function RebalanceCard({ data, loading }: { data: RebalanceData | null; loading:
             <div className="h-37.5">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
-                  <Pie
-                    data={currentData}
-                    cx="50%"
-                    cy="50%"
+                  <Pie data={currentData} cx="50%" cy="50%"
                     innerRadius={40}
                     outerRadius={60}
                     paddingAngle={2}
@@ -751,15 +748,7 @@ function RebalanceCard({ data, loading }: { data: RebalanceData | null; loading:
             <div className="h-37.5">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
-                  <Pie
-                    data={targetData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={40}
-                    outerRadius={60}
-                    paddingAngle={2}
-                    dataKey="value"
-                  >
+                  <Pie data={targetData} cx="50%" cy="50%" innerRadius={40} outerRadius={60} paddingAngle={2} dataKey="value">
                     {targetData.map((_, index) => (
                       <Cell key={`cell-${index}`} fill={ALLOCATION_COLORS[index]} />
                     ))}
