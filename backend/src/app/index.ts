@@ -100,9 +100,22 @@ if (process.env.NODE_ENV !== 'production') {
     startMarketSimulation();
 }
 
-mongoose.connect(process.env.MONGODB_URI as string)
-  .then(() => console.log('MongoDB connected'))
-  .catch(err => console.error('MongoDB connection error:', err));
-
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+const startServer = async () => {
+  try {
+    const uri = process.env.MONGODB_URI;
+    if (!uri) {
+      throw new Error('MONGODB_URI environment variable is not set');
+    }
+    console.log('Connecting to MongoDB...');
+    await mongoose.connect(uri);
+    console.log('MongoDB connected successfully');
+    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+  } catch (err: any) {
+    console.error('Failed to start server:', err.message);
+    process.exit(1);
+  }
+};
+
+startServer();
