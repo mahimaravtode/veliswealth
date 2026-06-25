@@ -1,37 +1,44 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { API_BASE } from '@/lib/config';
 
-const SSE_URL = 'http://localhost:5000/api/market/stream';
-
-export function useMarketStream(onData: (data: any) => void) {
-  const esRef = useRef<EventSource | null>(null);
-  const reconnectTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+export function useMarketStream(onMessage?: (data: Record<string, unknown>) => void) {
+  const [connected, setConnected] = useState(false);
+  const eventSourceRef = useRef<EventSource | null>(null);
+  const reconnectTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    const connect = () => {
-      if (esRef.current) {
-        esRef.current.close();
+    const onMsg = onMessage;
+    function connect() {
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
       }
 
-      const es = new EventSource(SSE_URL);
-      esRef.current = es;
+      const es = new EventSource(`${API_BASE}/market/stream`);
+      eventSourceRef.current = es;
+
+      es.onopen = () => setConnected(true);
 
       es.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-          onData(data);
-        } catch { /* ignore parse errors */ }
+          if (data.type === 'connected') return;
+          onMsg?.(data);
+        } catch { /* parse error, ignore */ }
       };
 
       es.onerror = () => {
+        setConnected(false);
         es.close();
-        reconnectTimer.current = setTimeout(connect, 3000);
+        reconnectTimeout.current = setTimeout(connect, 5000);
       };
-    };
+    }
 
     connect();
     return () => {
-      esRef.current?.close();
-      clearTimeout(reconnectTimer.current);
+      eventSourceRef.current?.close();
+      clearTimeout(reconnectTimeout.current);
     };
-  }, [onData]);
+  }, [onMessage]);
+
+  return { connected };
 }

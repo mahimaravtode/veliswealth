@@ -1,20 +1,41 @@
-import mongoose, { Schema, Document } from 'mongoose';
-import { IMarketMover, IFundamentals, IPriceHistory } from '../types';
+import mongoose, { Document, Schema } from 'mongoose';
 
-export interface IMarketMoverDocument extends Omit<IMarketMover, '_id'>, Document {}
+export interface IMarketMoverFundamentals {
+  peRatio?: number;
+  pbRatio?: number;
+  eps?: number;
+  roe?: number;
+  dividendYield?: number;
+}
 
-const FundamentalsSchema = new Schema<IFundamentals>({
-  peRatio: Number,
-  pbRatio: Number,
-  eps: Number,
-  roe: Number,
-  dividendYield: Number
-});
+export interface IMarketMoverHistory {
+  price?: number;
+  timestamp?: Date;
+}
 
-const PriceHistorySchema = new Schema<IPriceHistory>({
-  price: Number,
-  timestamp: { type: Date, default: Date.now }
-});
+export interface IMarketMover {
+  symbol: string;
+  name: string;
+  type: 'Stock' | 'Index';
+  sector?: string;
+  lastPrice: number;
+  prevClose?: number;
+  change?: number;
+  changePercent?: number;
+  volume?: number;
+  marketCap?: number;
+  openPrice?: number;
+  highPrice?: number;
+  lowPrice?: number;
+  buyQuantity?: number;
+  sellQuantity?: number;
+  circuitHit?: 'Upper' | 'Lower' | 'None';
+  fundamentals?: IMarketMoverFundamentals;
+  history?: IMarketMoverHistory[];
+  timestamp?: Date;
+}
+
+export interface IMarketMoverDocument extends IMarketMover, Document {}
 
 const MarketMoverSchema = new Schema<IMarketMoverDocument>({
   symbol: { type: String, required: true, unique: true },
@@ -32,8 +53,17 @@ const MarketMoverSchema = new Schema<IMarketMoverDocument>({
   buyQuantity: Number,
   sellQuantity: Number,
   circuitHit: { type: String, enum: ['Upper', 'Lower', 'None'], default: 'None' },
-  fundamentals: FundamentalsSchema,
-  history: [PriceHistorySchema],
+  fundamentals: {
+    peRatio: Number,
+    pbRatio: Number,
+    eps: Number,
+    roe: Number,
+    dividendYield: Number
+  },
+  history: [{
+    price: Number,
+    timestamp: { type: Date, default: Date.now }
+  }],
   timestamp: { type: Date, default: Date.now }
 });
 

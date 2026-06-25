@@ -1,14 +1,15 @@
-import { Router, Response } from 'express';
-import { auth } from '../middleware/auth';
+import { Router, Request, Response } from 'express';
+import auth from '../middleware/auth';
 import Asset from '../models/Asset';
-import { AuthRequest } from '../types';
+import { validate } from '../middleware/validate';
+import { createAssetSchema } from '../middleware/schemas';
 
 const router = Router();
 
-router.get('/net-worth', auth, async (req: AuthRequest, res: Response) => {
+router.get('/net-worth', auth, async (req: Request, res: Response) => {
   try {
     const assets = await Asset.find({ userId: req.userId });
-    
+
     let totalAssets = 0;
     let totalLiabilities = 0;
 
@@ -22,17 +23,17 @@ router.get('/net-worth', auth, async (req: AuthRequest, res: Response) => {
       totalLiabilities,
       netWorth: totalAssets - totalLiabilities
     });
-  } catch (error: any) {
+  } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }
 });
 
-router.post('/asset', auth, async (req: AuthRequest, res: Response) => {
+router.post('/asset', auth, validate(createAssetSchema), async (req: Request, res: Response) => {
   try {
     const asset = new Asset({ ...req.body, userId: req.userId });
     await asset.save();
     res.status(201).json(asset);
-  } catch (error: any) {
+  } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }
 });

@@ -1,20 +1,37 @@
-import mongoose, { Schema, Document } from 'mongoose';
-import { IGoal, IContribution, IMilestone } from '../types';
+import mongoose, { Document, Schema, Types } from 'mongoose';
 
-export interface IGoalDocument extends Omit<IGoal, '_id'>, Document {}
+export interface IGoalContribution {
+  amount: number;
+  date: Date;
+  note?: string;
+}
 
-const ContributionSchema = new Schema<IContribution>({
-  amount: { type: Number, required: true },
-  date: { type: Date, required: true },
-  note: { type: String, default: '' },
-});
+export interface IGoalMilestone {
+  title?: string;
+  amount?: number;
+  achieved?: boolean;
+  achievedAt?: Date;
+}
 
-const MilestoneSchema = new Schema<IMilestone>({
-  title: String,
-  amount: Number,
-  achieved: { type: Boolean, default: false },
-  achievedAt: Date,
-});
+export interface IGoal {
+  userId: Types.ObjectId;
+  title: string;
+  targetAmount: number;
+  currentAmount?: number;
+  monthlyContribution?: number;
+  targetDate?: Date;
+  category?: 'Home' | 'Education' | 'Car' | 'Retirement' | 'Emergency Fund' | 'Vacation' | 'Wedding' | 'Electronics' | 'Health' | 'Investment' | 'Other';
+  priority?: 'High' | 'Medium' | 'Low';
+  status?: 'Active' | 'Paused' | 'Achieved';
+  icon?: string;
+  color?: string;
+  contributions?: IGoalContribution[];
+  milestones?: IGoalMilestone[];
+  notes?: string;
+  createdAt?: Date;
+}
+
+export interface IGoalDocument extends IGoal, Document {}
 
 const GoalSchema = new Schema<IGoalDocument>({
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
@@ -28,8 +45,17 @@ const GoalSchema = new Schema<IGoalDocument>({
   status: { type: String, enum: ['Active', 'Paused', 'Achieved'], default: 'Active' },
   icon: { type: String, default: 'Target' },
   color: { type: String, default: '#2563eb' },
-  contributions: [ContributionSchema],
-  milestones: [MilestoneSchema],
+  contributions: [{
+    amount: { type: Number, required: true },
+    date: { type: Date, required: true },
+    note: { type: String, default: '' },
+  }],
+  milestones: [{
+    title: String,
+    amount: Number,
+    achieved: { type: Boolean, default: false },
+    achievedAt: Date,
+  }],
   notes: { type: String, default: '' },
   createdAt: { type: Date, default: Date.now },
 });

@@ -3,11 +3,12 @@ import {
   flexRender,
   getCoreRowModel,
   getSortedRowModel,
+  getFilteredRowModel,
   useReactTable,
 } from "@tanstack/react-table"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
-import { ArrowUpDown, Search } from "lucide-react"
+import { ArrowUpDown } from "lucide-react"
 
 export default function SnapshotTable({ data, onRowClick }: any) {
   const [sorting, setSorting] = React.useState<any>([])
@@ -19,11 +20,11 @@ export default function SnapshotTable({ data, onRowClick }: any) {
         { accessorKey: "lastPrice", header: "LTP", cell: (info: any) => `₹${(info.getValue() || 0).toLocaleString()}` },
         { accessorKey: "change", header: "CHNG", cell: (info: any) => {
             const val = info.getValue() || 0;
-            return <div className={val >= 0 ? 'text-success font-semibold' : 'text-destructive font-semibold'}>{val}</div>
+            return <div className={val >= 0 ? 'text-success' : 'text-destructive'}>{val}</div>
         }},
         { accessorKey: "changePercent", header: "%CHNG", cell: (info: any) => {
             const val = info.getValue() || 0;
-            return <div className={val >= 0 ? 'text-success font-semibold' : 'text-destructive font-semibold'}>{val}%</div>
+            return <div className={val >= 0 ? 'text-success' : 'text-destructive'}>{val}%</div>
         }},
         { accessorKey: "volume", header: "VOLUME (Lakhs)", cell: (info: any) => ((info.getValue() || 0) / 100000).toFixed(2) },
         { accessorKey: "marketCap", header: "VALUE (Cr)", cell: (info: any) => `₹${(((info.getValue() || 0) * (info.row.original.lastPrice || 0)) / 10000000).toFixed(2)}` },
@@ -36,30 +37,16 @@ export default function SnapshotTable({ data, onRowClick }: any) {
 
   return (
     <div className="space-y-4">
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input 
-          placeholder="Filter stocks..." 
-          value={(table.getColumn("symbol")?.getFilterValue() as string) ?? ""} 
-          onChange={(event) => table.getColumn("symbol")?.setFilterValue(event.target.value)} 
-          className="pl-9"
-        />
-      </div>
-      <div className="rounded-3xl border border-border/50 bg-card overflow-hidden">
+      <Input placeholder="Filter stocks..." value={(table.getColumn("symbol")?.getFilterValue() as string) ?? ""} onChange={(event) => table.getColumn("symbol")?.setFilterValue(event.target.value)} className="max-w-sm" />
+      <div className="rounded-xl border border-border bg-card overflow-hidden shadow-sm">
         <Table>
-          <TableHeader className="bg-muted/30">
+          <TableHeader className="bg-muted/50">
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="border-b border-border/30 hover:bg-transparent">
+              <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <TableHead 
-                    key={header.id} 
-                    onClick={header.column.getToggleSortingHandler()} 
-                    className="cursor-pointer font-bold text-foreground text-xs uppercase tracking-wider hover:text-primary transition-colors"
-                  >
-                    <div className="flex items-center gap-1">
-                      {flexRender(header.column.columnDef.header, header.getContext())}
-                      <ArrowUpDown className="h-3 w-3 opacity-50" />
-                    </div>
+                  <TableHead key={header.id} onClick={header.column.getToggleSortingHandler()} className="cursor-pointer font-bold text-foreground">
+                    {flexRender(header.column.columnDef.header, header.getContext())}
+                    <ArrowUpDown className="ml-2 h-3 w-3 inline" />
                   </TableHead>
                 ))}
               </TableRow>
@@ -67,13 +54,9 @@ export default function SnapshotTable({ data, onRowClick }: any) {
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows.map((row) => (
-              <TableRow 
-                key={row.id} 
-                className="border-b border-border/20 last:border-0 hover:bg-muted/30 transition-colors cursor-pointer" 
-                onClick={() => onRowClick(row.original)}
-              >
+              <TableRow key={row.id} className="hover:bg-accent transition-colors cursor-pointer" onClick={() => onRowClick(row.original)}>
                 {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id} className="text-right first:text-left font-medium py-3">
+                  <TableCell key={cell.id} className="text-right first:text-left font-medium">
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}

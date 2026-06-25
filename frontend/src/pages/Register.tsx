@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Wallet, ArrowRight, Eye, EyeOff } from "lucide-react";
+import { FinLeapLogo } from "@/components/FinLeapLogo";
 import { apiRequest } from '@/lib/api';
 import { useAuthStore } from '@/store/useAuthStore';
 
@@ -14,7 +14,6 @@ export default function Register() {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [serverError, setServerError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
   
   const navigate = useNavigate();
   const setAuth = useAuthStore((state) => state.setAuth);
@@ -63,92 +62,63 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
-      {/* Background blobs */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-48 -left-48 w-[500px] h-[500px] bg-sage/8 rounded-full blur-3xl animate-pulse-soft" />
-        <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse-soft" style={{ animationDelay: '2s' }} />
-        <div className="absolute top-1/3 right-1/4 w-64 h-64 bg-gold/8 rounded-full blur-3xl animate-pulse-soft" style={{ animationDelay: '4s' }} />
-      </div>
-
-      <Card className="w-full max-w-md relative z-10 border-0 shadow-xl shadow-black/5 bg-card/80 backdrop-blur-xl">
-        <CardHeader className="space-y-1 text-center pb-8 pt-8">
-          <div className="flex justify-center mb-6">
-            <div className="p-4 bg-gradient-to-br from-primary/20 to-primary/5 rounded-3xl shadow-lg shadow-primary/10">
-              <Wallet className="h-10 w-10 text-primary" />
-            </div>
+    <div className="min-h-screen flex items-center justify-center bg-muted p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="space-y-1 text-center">
+          <div className="flex justify-center mb-4">
+            <FinLeapLogo className="h-10 w-10 text-primary" />
           </div>
-          <CardTitle className="text-3xl font-black tracking-tight">Create Account</CardTitle>
-          <CardDescription className="text-muted-foreground">
-            Start your wealth journey today
+          <CardTitle className="text-2xl font-bold">Create an Account</CardTitle>
+          <CardDescription>
+            Enter your details below to start your wealth journey
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-5 px-8">
+          <CardContent className="space-y-4">
             {serverError && (
-              <div className="p-4 text-sm text-destructive bg-destructive/10 rounded-2xl border border-destructive/20">
+              <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-md">
                 {serverError}
               </div>
             )}
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-foreground">Full Name</label>
+              <label className="text-sm font-medium">Full Name</label>
               <Input 
                 placeholder="John Doe" 
                 className={errors.name ? "border-destructive focus-visible:ring-destructive" : ""}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
               />
-              {errors.name && <p className="text-xs text-destructive font-medium mt-1">{errors.name}</p>}
+              {errors.name && <p className="text-xs text-destructive font-medium">{errors.name}</p>}
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-foreground">Email</label>
+              <label className="text-sm font-medium">Email</label>
               <Input 
                 type="email" 
-                placeholder="you@example.com" 
+                placeholder="m@example.com" 
                 className={errors.email ? "border-destructive focus-visible:ring-destructive" : ""}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
-              {errors.email && <p className="text-xs text-destructive font-medium mt-1">{errors.email}</p>}
+              {errors.email && <p className="text-xs text-destructive font-medium">{errors.email}</p>}
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-foreground">Password</label>
-              <div className="relative">
-                <Input 
-                  type={showPassword ? "text" : "password"} 
-                  placeholder="Min. 6 characters"
-                  className={errors.password ? "border-destructive focus-visible:ring-destructive pr-10" : "pr-10"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              </div>
-              {errors.password && <p className="text-xs text-destructive font-medium mt-1">{errors.password}</p>}
+              <label className="text-sm font-medium">Password</label>
+              <Input 
+                type="password" 
+                className={errors.password ? "border-destructive focus-visible:ring-destructive" : ""}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              {errors.password && <p className="text-xs text-destructive font-medium">{errors.password}</p>}
             </div>
           </CardContent>
-          <CardFooter className="flex flex-col gap-5 px-8 pb-8">
-            <Button className="w-full h-12 text-base font-bold" type="submit" disabled={loading}>
-              {loading ? (
-                <span className="flex items-center gap-2">
-                  <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Creating Account...
-                </span>
-              ) : (
-                <span className="flex items-center gap-2">
-                  Create Account
-                  <ArrowRight className="h-4 w-4" />
-                </span>
-              )}
+          <CardFooter className="flex flex-col gap-4">
+            <Button className="w-full" type="submit" disabled={loading}>
+              {loading ? "Creating Account..." : "Create Account"}
             </Button>
             <div className="text-sm text-center text-muted-foreground">
               Already have an account?{" "}
-              <Link to="/login" className="text-primary font-semibold hover:underline">
+              <Link to="/login" className="text-primary hover:underline">
                 Sign In
               </Link>
             </div>

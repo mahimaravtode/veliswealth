@@ -1,17 +1,18 @@
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Calculator, Landmark, PiggyBank, Target, IndianRupee
+  Calculator, TrendingUp, Landmark, PiggyBank, Target,
+  ArrowRight, IndianRupee, Clock, Percent, BadgeCheck
 } from "lucide-react";
-import { PieChart, Pie, Cell, AreaChart, Area, XAxis, YAxis, CartesianGrid } from 'recharts';
-import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, AreaChart, Area, XAxis, YAxis, CartesianGrid } from 'recharts';
+import { formatCurrency } from '@/lib/utils';
 
-const COLORS = ['#ffffff', '#f59e0b', '#ef4444'];
-const formatCurrency = (val: number) =>
-  new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(val);
+const COLORS = ['#14b8a6', '#f59e0b', '#ef4444'];
 
 export default function FinancialTools() {
   return (
@@ -88,57 +89,43 @@ function SIPCalculator() {
             </div>
             <div className="flex justify-between border-b border-primary-foreground/20 pb-3">
               <span className="text-primary-foreground/70">Wealth Gained</span>
-              <span className="font-bold text-yellow-300">{formatCurrency(result.gains)}</span>
+              <span className="font-bold text-success">{formatCurrency(result.gains)}</span>
             </div>
             <div className="flex justify-between pt-2">
               <span className="text-primary-foreground/70 text-lg">Maturity Value</span>
               <span className="text-2xl font-black">{formatCurrency(result.total)}</span>
             </div>
-            <div className="h-45 w-full">
-              <ChartContainer
-                config={{
-                  Invested: { label: "Invested", color: COLORS[0] },
-                  Returns: { label: "Returns", color: COLORS[1] },
-                }}
-                className="h-full w-full"
-              >
-                <PieChart>
-                  <Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={70} paddingAngle={3} dataKey="value" nameKey="name">
-                    {pieData.map((_, i) => <Cell key={i} fill={COLORS[i]} />)}
-                  </Pie>
-                  <ChartTooltip content={<ChartTooltipContent formatter={(value) => formatCurrency(Number(value))} />} />
-                </PieChart>
-              </ChartContainer>
-            </div>
+            <ResponsiveContainer width="100%" height={180}>
+              <PieChart>
+                <Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={70} paddingAngle={3} dataKey="value">
+                  {pieData.map((_, i) => <Cell key={i} fill={COLORS[i]} />)}
+                </Pie>
+                <Tooltip formatter={(v: number) => formatCurrency(v)} />
+              </PieChart>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
       </div>
       <Card className="border-0 shadow-md">
         <CardHeader><CardTitle className="text-base">Growth Over Time</CardTitle></CardHeader>
         <CardContent>
-          <ChartContainer
-            config={{
-              invested: { label: "Invested", color: "#f59e0b" },
-              value: { label: "Value", color: "#14b8a6" },
-            }}
-            className="h-75 w-full"
-          >
+          <ResponsiveContainer width="100%" height={300}>
             <AreaChart data={yearlyData}>
               <defs>
                 <linearGradient id="sipGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.15} />
-                  <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                  <stop offset="5%" stopColor="#14b8a6" stopOpacity={0.15} />
+                  <stop offset="95%" stopColor="#14b8a6" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="year" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
-              <YAxis tick={{ fontSize: 11 }} tickFormatter={v => formatCurrency(v)} stroke="hsl(var(--muted-foreground))" />
-              <ChartTooltip content={<ChartTooltipContent formatter={(value) => formatCurrency(Number(value))} />} />
-              <ChartLegend content={<ChartLegendContent />} />
+              <XAxis dataKey="year" tick={{ fontSize: 11 }} />
+              <YAxis tick={{ fontSize: 11 }} tickFormatter={v => formatCurrency(v)} />
+              <Tooltip formatter={(v: number) => formatCurrency(v)} />
+              <Legend />
               <Area type="monotone" dataKey="invested" stroke="#f59e0b" fill="#f59e0b" fillOpacity={0.3} name="Invested" />
-              <Area type="monotone" dataKey="value" stroke="hsl(var(--primary))" fill="url(#sipGrad)" strokeWidth={2} name="Value" />
+              <Area type="monotone" dataKey="value" stroke="#14b8a6" fill="url(#sipGrad)" strokeWidth={2} name="Value" />
             </AreaChart>
-          </ChartContainer>
+          </ResponsiveContainer>
         </CardContent>
       </Card>
     </div>
@@ -180,28 +167,20 @@ function LumpsumCalculator() {
           </div>
           <div className="flex justify-between border-b border-primary-foreground/20 pb-3">
             <span className="text-primary-foreground/70">Estimated Returns</span>
-            <span className="font-bold text-yellow-300">{formatCurrency(result.gains)}</span>
+            <span className="font-bold text-success">{formatCurrency(result.gains)}</span>
           </div>
           <div className="flex justify-between pt-2">
             <span className="text-primary-foreground/70 text-lg">Total Value</span>
             <span className="text-2xl font-black">{formatCurrency(result.total)}</span>
           </div>
-          <div className="h-45 w-full">
-            <ChartContainer
-              config={{
-                Invested: { label: "Invested", color: COLORS[0] },
-                Returns: { label: "Returns", color: COLORS[1] },
-              }}
-              className="h-full w-full"
-            >
-              <PieChart>
-                <Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={70} paddingAngle={3} dataKey="value" nameKey="name">
-                  {pieData.map((_, i) => <Cell key={i} fill={COLORS[i]} />)}
-                </Pie>
-                <ChartTooltip content={<ChartTooltipContent formatter={(value) => formatCurrency(Number(value))} />} />
-              </PieChart>
-            </ChartContainer>
-          </div>
+          <ResponsiveContainer width="100%" height={180}>
+            <PieChart>
+              <Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={70} paddingAngle={3} dataKey="value">
+                {pieData.map((_, i) => <Cell key={i} fill={COLORS[i]} />)}
+              </Pie>
+              <Tooltip formatter={(v: number) => formatCurrency(v)} />
+            </PieChart>
+          </ResponsiveContainer>
         </CardContent>
       </Card>
     </div>
@@ -304,28 +283,20 @@ function EMICalculator() {
           </div>
           <div className="flex justify-between border-b border-primary-foreground/20 pb-3">
             <span className="text-primary-foreground/70">Total Interest</span>
-            <span className="font-bold text-red-300">{formatCurrency(result.totalInterest)}</span>
+            <span className="font-bold text-warning">{formatCurrency(result.totalInterest)}</span>
           </div>
           <div className="flex justify-between pt-2">
             <span className="text-primary-foreground/70 text-lg">Monthly EMI</span>
             <span className="text-2xl font-black">{formatCurrency(result.emi)}</span>
           </div>
-          <div className="h-45 w-full">
-            <ChartContainer
-              config={{
-                Principal: { label: "Principal", color: COLORS[0] },
-                Interest: { label: "Interest", color: COLORS[1] },
-              }}
-              className="h-full w-full"
-            >
-              <PieChart>
-                <Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={70} paddingAngle={3} dataKey="value" nameKey="name">
-                  {pieData.map((_, i) => <Cell key={i} fill={COLORS[i]} />)}
-                </Pie>
-                <ChartTooltip content={<ChartTooltipContent formatter={(value) => formatCurrency(Number(value))} />} />
-              </PieChart>
-            </ChartContainer>
-          </div>
+          <ResponsiveContainer width="100%" height={180}>
+            <PieChart>
+              <Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={70} paddingAngle={3} dataKey="value">
+                {pieData.map((_, i) => <Cell key={i} fill={COLORS[i]} />)}
+              </Pie>
+              <Tooltip formatter={(v: number) => formatCurrency(v)} />
+            </PieChart>
+          </ResponsiveContainer>
         </CardContent>
       </Card>
     </div>
@@ -373,7 +344,7 @@ function PPFCalculator() {
             </div>
             <div className="flex justify-between border-b border-primary-foreground/20 pb-3">
               <span className="text-primary-foreground/70">Interest Earned</span>
-              <span className="font-bold text-yellow-300">{formatCurrency(result.interest)}</span>
+              <span className="font-bold text-success">{formatCurrency(result.interest)}</span>
             </div>
             <div className="flex justify-between pt-2">
               <span className="text-primary-foreground/70 text-lg">Maturity Value</span>
@@ -385,29 +356,23 @@ function PPFCalculator() {
       <Card className="border-0 shadow-md">
         <CardHeader><CardTitle className="text-base">Growth Over Time</CardTitle></CardHeader>
         <CardContent>
-          <ChartContainer
-            config={{
-              invested: { label: "Invested", color: "#f59e0b" },
-              balance: { label: "Balance", color: "#14b8a6" },
-            }}
-            className="h-75 w-full"
-          >
+          <ResponsiveContainer width="100%" height={300}>
             <AreaChart data={result.data}>
               <defs>
                 <linearGradient id="ppfGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.15} />
-                  <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                  <stop offset="5%" stopColor="#14b8a6" stopOpacity={0.15} />
+                  <stop offset="95%" stopColor="#14b8a6" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="year" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
-              <YAxis tick={{ fontSize: 11 }} tickFormatter={v => formatCurrency(v)} stroke="hsl(var(--muted-foreground))" />
-              <ChartTooltip content={<ChartTooltipContent formatter={(value) => formatCurrency(Number(value))} />} />
-              <ChartLegend content={<ChartLegendContent />} />
+              <XAxis dataKey="year" tick={{ fontSize: 11 }} />
+              <YAxis tick={{ fontSize: 11 }} tickFormatter={v => formatCurrency(v)} />
+              <Tooltip formatter={(v: number) => formatCurrency(v)} />
+              <Legend />
               <Area type="monotone" dataKey="invested" stroke="#f59e0b" fill="#f59e0b" fillOpacity={0.3} name="Invested" />
-              <Area type="monotone" dataKey="balance" stroke="hsl(var(--primary))" fill="url(#ppfGrad)" strokeWidth={2} name="Balance" />
+              <Area type="monotone" dataKey="balance" stroke="#14b8a6" fill="url(#ppfGrad)" strokeWidth={2} name="Balance" />
             </AreaChart>
-          </ChartContainer>
+          </ResponsiveContainer>
         </CardContent>
       </Card>
     </div>
@@ -420,23 +385,18 @@ function SliderInput({ label, value, onChange, min, max, step, prefix = '', suff
 }) {
   return (
     <div className="space-y-2">
-      <Label className="text-sm">{label}</Label>
-      <div className="flex items-center gap-2">
-        {prefix && <span className="text-sm text-muted-foreground">{prefix}</span>}
-        <Input
-          type="number"
-          value={value}
-          onChange={(e) => {
-            const v = parseFloat(e.target.value);
-            if (!isNaN(v)) onChange(Math.min(max, Math.max(min, v)));
-          }}
-          min={min}
-          max={max}
-          step={step}
-          className="flex-1"
-        />
-        {suffix && <span className="text-sm text-muted-foreground whitespace-nowrap">{suffix}</span>}
+      <div className="flex justify-between">
+        <Label className="text-sm">{label}</Label>
+        <span className="text-sm font-bold text-primary">{prefix}{value.toLocaleString()}{suffix}</span>
       </div>
+      <Slider
+        value={[value]}
+        onValueChange={(v) => onChange(v[0])}
+        min={min}
+        max={max}
+        step={step}
+        className="w-full"
+      />
       <div className="flex justify-between text-xs text-muted-foreground">
         <span>{prefix}{min.toLocaleString()}{suffix}</span>
         <span>{prefix}{max.toLocaleString()}{suffix}</span>

@@ -1,53 +1,47 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Document, Schema, Types } from 'mongoose';
 
-export interface IHoldingDocument extends Document {
-  userId: mongoose.Types.ObjectId;
-  holdings: {
-    symbol: string;
-    name: string;
-    exchange: 'NSE' | 'BSE';
-    quantity: number;
-    avgBuyPrice: number;
-    currentPrice: number;
-    pnl: number;
-    pnlPercent: number;
-    investedAmount: number;
-    currentValue: number;
-    addedAt: Date;
-  }[];
-  summary: {
-    totalInvested: number;
-    currentValue: number;
-    totalPnl: number;
-    totalPnlPercent: number;
-  };
-  createdAt: Date;
+export interface IPortfolioHolding {
+  schemeCode?: string;
+  schemeName?: string;
+  units?: number;
+  avgNav?: number;
+  currentNav?: number;
+  category?: string;
+  lastUpdated?: Date;
 }
 
-const HoldingSchema = new Schema({
-  symbol: { type: String, required: true },
-  name: { type: String, required: true },
-  exchange: { type: String, enum: ['NSE', 'BSE'], default: 'NSE' },
-  quantity: { type: Number, required: true },
-  avgBuyPrice: { type: Number, required: true },
-  currentPrice: { type: Number, default: 0 },
-  pnl: { type: Number, default: 0 },
-  pnlPercent: { type: Number, default: 0 },
-  investedAmount: { type: Number, default: 0 },
-  currentValue: { type: Number, default: 0 },
-  addedAt: { type: Date, default: Date.now }
-});
+export interface IPortfolioSummary {
+  totalInvested?: number;
+  currentValue?: number;
+  totalGain?: number;
+  xirr?: number;
+}
 
-const PortfolioSchema = new Schema<IHoldingDocument>({
+export interface IPortfolio {
+  userId: Types.ObjectId;
+  holdings?: IPortfolioHolding[];
+  summary?: IPortfolioSummary;
+}
+
+export interface IPortfolioDocument extends IPortfolio, Document {}
+
+const PortfolioSchema = new Schema<IPortfolioDocument>({
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
-  holdings: [HoldingSchema],
+  holdings: [{
+    schemeCode: String,
+    schemeName: String,
+    units: Number,
+    avgNav: Number,
+    currentNav: Number,
+    category: String,
+    lastUpdated: { type: Date, default: Date.now }
+  }],
   summary: {
     totalInvested: { type: Number, default: 0 },
     currentValue: { type: Number, default: 0 },
-    totalPnl: { type: Number, default: 0 },
-    totalPnlPercent: { type: Number, default: 0 }
-  },
-  createdAt: { type: Date, default: Date.now }
+    totalGain: { type: Number, default: 0 },
+    xirr: { type: Number, default: 0 }
+  }
 });
 
-export default mongoose.model<IHoldingDocument>('Portfolio', PortfolioSchema);
+export default mongoose.model<IPortfolioDocument>('Portfolio', PortfolioSchema);

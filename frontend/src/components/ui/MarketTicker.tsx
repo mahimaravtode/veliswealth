@@ -1,80 +1,102 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
+import { apiRequest } from '@/lib/api';
 import { useMarketStream } from '@/hooks/useMarketStream';
-import { TrendingUp, TrendingDown } from 'lucide-react';
-
-function TickerPrice({ value }: { value: number }) {
-  const prevRef = useRef(value);
-  const [flash, setFlash] = useState<'up' | 'down' | null>(null);
-
-  useEffect(() => {
-    if (value !== prevRef.current) {
-      setFlash(value > prevRef.current ? 'up' : 'down');
-      prevRef.current = value;
-      const t = setTimeout(() => setFlash(null), 600);
-      return () => clearTimeout(t);
-    }
-  }, [value]);
-
-  const cls = flash === 'up' ? 'text-success' : flash === 'down' ? 'text-destructive' : '';
-  return (
-    <span className={`text-xs font-bold transition-colors duration-300 ${cls}`}>
-      ₹{value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-    </span>
-  );
-}
 
 export default function MarketTicker() {
   const [stocks, setStocks] = useState<any[]>([]);
+  const prevPrices = useRef<Record<string, number>>({});
 
-  const handleData = useCallback((data: any) => {
-    if (data) {
-      const gainers = data.gainers || [];
-      const losers = data.losers || [];
-      setStocks([...gainers, ...losers]);
+  const fetchData = useCallback(async () => {
+    try {
+      const data = await apiRequest('/market/movers');
+      const gainers = data?.gainers || [];
+      const losers = data?.losers || [];
+      const all = [...gainers, ...losers];
+      
+      setStocks(all);
+      all.forEach(s => {
+        prevPrices.current[s.symbol] = s.lastPrice;
+      });
+    } catch (err) {
+      console.error(err);
     }
   }, []);
 
-  useMarketStream(handleData);
+  useMarketStream(useCallback((msg: any) => {
+    if (msg.type === 'market_update') {
+      fetchData();
+    } else if (msg.type === 'ticker_update' && msg.data) {
+      setStocks(prev => prev.map(stock => {
+        const update = msg.data.find((u: any) => u.symbol === stock.symbol);
+        if (update) {
+          return {
+            ...stock,
+            lastPrice: update.price,
+            change: update.change,
+            changePercent: update.changePercent
+          };
+        }
+        return stock;
+      }));
+    }
+  }, [fetchData]));
 
-  if (stocks.length === 0) return null;
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   return (
-    <div className="w-full overflow-hidden py-3 ">
-      <div className="bg-card/60 backdrop-blur-sm rounded-2xl border border-border/30 px-4 py-2.5 overflow-hidden">
+    <div className="w-full bg-card border-y border-border overflow-hidden py-2">
+      {stocks.length > 0 && (
         <motion.div
-          className="flex gap-3"
+          className="flex gap-4"
           animate={{ x: ["0%", "-50%"] }}
-          transition={{ duration: 45, ease: "linear", repeat: Infinity }}
+          transition={{ duration: 60, ease: "linear", repeat: Infinity }}
         >
-          {[...stocks, ...stocks].map((stock, i) => {
-            const change = stock.change || 0;
-            const percent = stock.changePercent || 0;
-            const isPositive = change >= 0;
-            return (
-              <div 
-                key={i} 
-                className="flex items-center gap-2.5 px-3.5 py-1.5 rounded-xl bg-muted/30 border border-border/20 min-w-fit hover:bg-muted/50 transition-colors duration-200"
-              >
-                <span className="font-black text-xs text-foreground">
-                  {stock.symbol?.split('.')[0] || 'N/A'}
-                </span>
-                <TickerPrice value={stock.lastPrice || 0} />
-                <div className={`flex items-center gap-0.5 text-[10px] font-bold ${isPositive ? 'text-success' : 'text-destructive'}`}>
-                  {isPositive ? (
-                    <TrendingUp className="h-2.5 w-2.5" />
-                  ) : (
-                    <TrendingDown className="h-2.5 w-2.5" />
-                  )}
-                  <span>
-                    {isPositive ? '+' : ''}{change} ({percent}%)
-                  </span>
-                </div>
-              </div>
-            );
-          })}
+          {[...stocks, ...stocks].map((stock, i) => (
+            <TickerItem key={`${stock.symbol}-${i}`} stock={stock} />
+          ))}
         </motion.div>
-      </div>
+      )}
     </div>
+  );
+}
+
+function TickerItem({ stock }: { stock: any }) {
+  const [flash, setFlash] = useState<'up' | 'down' | null>(null);
+  const prevPriceRef = useRef(stock.lastPrice);
+
+  useEffect(() => {
+    if (stock.lastPrice > prevPriceRef.current) {
+      setFlash('up');
+      const timer = setTimeout(() => setFlash(null), 1000);
+      return () => clearTimeout(timer);
+    } else if (stock.lastPrice < prevPriceRef.current) {
+      setFlash('down');
+      const timer = setTimeout(() => setFlash(null), 1000);
+      return () => clearTimeout(timer);
+    }
+    prevPriceRef.current = stock.lastPrice;
+  }, [stock.lastPrice]);
+
+  const price = stock.lastPrice || 0;
+  const change = stock.change || 0;
+  const percent = stock.changePercent || 0;
+  const isPositive = change >= 0;
+
+  return (
+    <motion.div 
+      animate={{
+        backgroundColor: flash === 'up' ? 'rgba(34, 197, 94, 0.2)' : flash === 'down' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(var(--muted), 0.5)',
+      }}
+      className="flex items-center gap-2 px-4 py-1.5 border border-border rounded-lg min-w-fit shadow-sm bg-muted/50 transition-colors duration-300"
+    >
+      <span className="font-black text-xs text-foreground">{stock.symbol?.split('.')[0] || 'N/A'}</span>
+      <span className="text-xs font-medium text-muted-foreground">₹{price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+      <span className={`text-[10px] font-bold ${isPositive ? 'text-success' : 'text-destructive'}`}>
+          {isPositive ? '+' : ''}{change.toFixed(2)} ({percent.toFixed(2)}%)
+      </span>
+    </motion.div>
   );
 }

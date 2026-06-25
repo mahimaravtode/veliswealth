@@ -1,15 +1,29 @@
-import mongoose, { Schema, Document } from 'mongoose';
-import { IMarketStats, ITurnover } from '../types';
+import mongoose, { Document, Schema } from 'mongoose';
 
-export interface IMarketStatsDocument extends Omit<IMarketStats, '_id'>, Document {}
+export interface IMarketStatsTurnover {
+  product?: string;
+  volume?: string;
+  value?: string;
+  openInterest?: string;
+  lastUpdated?: string;
+}
 
-const TurnoverSchema = new Schema<ITurnover>({
-  product: String,
-  volume: String,
-  value: String,
-  openInterest: String,
-  lastUpdated: String
-});
+export interface IMarketStats {
+  date?: Date;
+  stockTraded?: number;
+  advances?: number;
+  declines?: number;
+  unchanged?: number;
+  fiftyTwoWeekHigh?: number;
+  fiftyTwoWeekLow?: number;
+  upperCircuitCount?: number;
+  lowerCircuitCount?: number;
+  marketCap?: string;
+  latencyNanoseconds?: number;
+  turnover?: IMarketStatsTurnover[];
+}
+
+export interface IMarketStatsDocument extends IMarketStats, Document {}
 
 const MarketStatsSchema = new Schema<IMarketStatsDocument>({
   date: { type: Date, default: Date.now },
@@ -23,7 +37,13 @@ const MarketStatsSchema = new Schema<IMarketStatsDocument>({
   lowerCircuitCount: Number,
   marketCap: String,
   latencyNanoseconds: Number,
-  turnover: [TurnoverSchema]
+  turnover: [{
+    product: String,
+    volume: String,
+    value: String,
+    openInterest: String,
+    lastUpdated: String
+  }]
 });
 
 export default mongoose.model<IMarketStatsDocument>('MarketStats', MarketStatsSchema);

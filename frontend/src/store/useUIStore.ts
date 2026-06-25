@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 
 interface UIState {
+  sidebarOpen: boolean;
+  toggleSidebar: () => void;
   activeTab: string;
   setActiveTab: (tab: string) => void;
   theme: 'light' | 'dark';
@@ -30,6 +32,8 @@ if (typeof window !== 'undefined') {
 }
 
 export const useUIStore = create<UIState>((set) => ({
+  sidebarOpen: false,
+  toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
   activeTab: 'dashboard',
   setActiveTab: (tab) => set({ activeTab: tab }),
   theme: initialTheme,

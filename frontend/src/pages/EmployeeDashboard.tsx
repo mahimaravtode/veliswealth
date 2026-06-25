@@ -1,20 +1,18 @@
-import { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Users, TrendingUp, DollarSign, ExternalLink } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { apiRequest } from '@/lib/api';
+import { formatCurrency } from '@/lib/utils';
 
 export default function EmployeeDashboard() {
-  const [stats] = useState({ totalClients: 12, totalAum: 45000000, activeSips: 48 });
-  const [clients] = useState([
+  const [stats, setStats] = useState({ totalClients: 12, totalAum: 45000000, activeSips: 48 });
+  const [clients, setClients] = useState([
     { name: "Rahul Sharma", email: "rahul@example.com", aum: "₹24,50,000", lastActive: "2 hours ago", status: "Active" },
     { name: "Priya Patel", email: "priya@example.com", aum: "₹1,20,00,000", lastActive: "5 mins ago", status: "Active" },
     { name: "Amit Kumar", email: "amit@example.com", aum: "₹8,30,000", lastActive: "1 day ago", status: "Pending KYC" },
   ]);
-
-  const formatCurrency = (val: number) => 
-    new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(val);
 
   return (
     <div className="space-y-8">

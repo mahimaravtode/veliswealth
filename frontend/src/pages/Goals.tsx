@@ -1,5 +1,5 @@
-import { useEffect, useState, useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useEffect, useState, useMemo } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,12 +7,15 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Plus, Trash2, Target, Loader2, Calendar, TrendingUp, Clock,
-  Home, GraduationCap, Car, Palmtree, Heart, Laptop,
-  PiggyBank, CheckCircle2, AlertCircle, Coins
+  Home, GraduationCap, Car, Gem, Palmtree, Heart, Laptop,
+  PiggyBank, Wallet, CheckCircle2, AlertCircle, BarChart3, Coins,
+  CircleDollarSign, Star, ArrowUpRight
 } from "lucide-react";
 import { useGoalStore } from '@/store/useGoalStore';
+import { formatCurrency } from '@/lib/utils';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
 const COLORS = ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#f97316'];
@@ -30,9 +33,6 @@ const CATEGORY_OPTIONS = [
   { value: 'Investment', label: 'Investment', icon: TrendingUp, color: '#10b981' },
   { value: 'Other', label: 'Other', icon: Target, color: '#6b7280' },
 ];
-
-const formatCurrency = (val: number) =>
-  new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(val);
 
 function getProjectedDate(targetAmount: number, currentAmount: number, monthlyContribution: number, targetDate?: string): Date | null {
   if (monthlyContribution <= 0) return targetDate ? new Date(targetDate) : null;
@@ -283,7 +283,7 @@ export default function Goals() {
                       <Pie data={categoryData} cx="50%" cy="50%" innerRadius={40} outerRadius={65} paddingAngle={3} dataKey="value">
                         {categoryData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                       </Pie>
-                      <Tooltip formatter={(v) => formatCurrency(Number(v))} />
+                      <Tooltip formatter={(v: number) => formatCurrency(v)} />
                     </PieChart>
                   </ResponsiveContainer>
                 </CardContent>
@@ -353,6 +353,7 @@ function GoalCard({ goal, expanded, onToggle, onDelete, onContribute }: {
   const monthsRemaining = getMonthsRemaining(goal.targetDate);
   const projectedDate = getProjectedDate(goal.targetAmount, goal.currentAmount || 0, goal.monthlyContribution || 0, goal.targetDate);
   const contributions = goal.contributions || [];
+  const totalContributed = contributions.reduce((s: number, c: any) => s + (c.amount || 0), 0);
 
   const priorityColor = goal.priority === 'High' ? 'text-destructive bg-destructive/10' : goal.priority === 'Low' ? 'text-primary bg-primary/10' : 'text-warning bg-warning/10';
   const statusColor = goal.status === 'Achieved' ? 'text-success bg-success/10' : goal.status === 'Paused' ? 'text-muted-foreground bg-muted' : 'text-primary bg-primary/5';

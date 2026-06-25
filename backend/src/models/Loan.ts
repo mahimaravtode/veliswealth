@@ -1,24 +1,39 @@
-import mongoose, { Schema, Document } from 'mongoose';
-import { ILoan, IPrepayment, IEMIHistory } from '../types';
+import mongoose, { Document, Schema, Types } from 'mongoose';
 
-export interface ILoanDocument extends Omit<ILoan, '_id'>, Document {}
+export interface ILoanPrepayment {
+  amount: number;
+  date: Date;
+  type?: 'partial' | 'full';
+  note?: string;
+}
 
-const PrepaymentSchema = new Schema<IPrepayment>({
-  amount: { type: Number, required: true },
-  date: { type: Date, required: true },
-  type: { type: String, enum: ['partial', 'full'], default: 'partial' },
-  note: { type: String, default: '' },
-});
+export interface ILoanEmiHistory {
+  month?: number;
+  year?: number;
+  emi?: number;
+  principal?: number;
+  interest?: number;
+  balance?: number;
+  date?: Date;
+}
 
-const EMIHistorySchema = new Schema<IEMIHistory>({
-  month: Number,
-  year: Number,
-  emi: Number,
-  principal: Number,
-  interest: Number,
-  balance: Number,
-  date: Date,
-});
+export interface ILoan {
+  userId: Types.ObjectId;
+  title: string;
+  loanAmount: number;
+  interestRate: number;
+  tenure: number;
+  tenureType?: 'years' | 'months';
+  startDate: Date;
+  loanType?: 'Home' | 'Car' | 'Personal' | 'Education' | 'Business' | 'Gold' | 'Other';
+  bankName?: string;
+  emiPaid?: number;
+  prepayments?: ILoanPrepayment[];
+  emiHistory?: ILoanEmiHistory[];
+  createdAt?: Date;
+}
+
+export interface ILoanDocument extends ILoan, Document {}
 
 const LoanSchema = new Schema<ILoanDocument>({
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
@@ -31,8 +46,21 @@ const LoanSchema = new Schema<ILoanDocument>({
   loanType: { type: String, enum: ['Home', 'Car', 'Personal', 'Education', 'Business', 'Gold', 'Other'], default: 'Home' },
   bankName: { type: String, default: '' },
   emiPaid: { type: Number, default: 0 },
-  prepayments: [PrepaymentSchema],
-  emiHistory: [EMIHistorySchema],
+  prepayments: [{
+    amount: { type: Number, required: true },
+    date: { type: Date, required: true },
+    type: { type: String, enum: ['partial', 'full'], default: 'partial' },
+    note: { type: String, default: '' },
+  }],
+  emiHistory: [{
+    month: Number,
+    year: Number,
+    emi: Number,
+    principal: Number,
+    interest: Number,
+    balance: Number,
+    date: Date,
+  }],
   createdAt: { type: Date, default: Date.now },
 });
 

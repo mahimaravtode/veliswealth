@@ -1,7 +1,19 @@
-import mongoose, { Schema, Document } from 'mongoose';
-import { IInsurance } from '../types';
+import mongoose, { Document, Schema, Types } from 'mongoose';
 
-export interface IInsuranceDocument extends Omit<IInsurance, '_id'>, Document {}
+export interface IInsurance {
+  userId: Types.ObjectId;
+  policyName: string;
+  policyNumber?: string;
+  type: 'Life' | 'Health' | 'General' | 'Critical Illness';
+  provider?: string;
+  premiumAmount?: number;
+  sumAssured?: number;
+  expiryDate?: Date;
+  status?: 'Active' | 'Lapsed' | 'Grace Period';
+  createdAt?: Date;
+}
+
+export interface IInsuranceDocument extends IInsurance, Document {}
 
 const InsuranceSchema = new Schema<IInsuranceDocument>({
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },

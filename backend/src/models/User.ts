@@ -1,8 +1,22 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Document, Schema } from 'mongoose';
 import bcrypt from 'bcryptjs';
-import { IUser } from '../types';
 
-export interface IUserDocument extends Omit<IUser, '_id'>, Document {
+export interface IUserRiskProfile {
+  score?: number;
+  category?: 'Conservative' | 'Moderate' | 'Aggressive' | 'Not Set';
+  lastUpdated?: Date;
+}
+
+export interface IUser {
+  name: string;
+  email: string;
+  password: string;
+  role?: 'Client' | 'Employee' | 'Admin';
+  riskProfile?: IUserRiskProfile;
+  createdAt?: Date;
+}
+
+export interface IUserDocument extends IUser, Document {
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
@@ -19,12 +33,12 @@ const UserSchema = new Schema<IUserDocument>({
   createdAt: { type: Date, default: Date.now }
 });
 
-UserSchema.pre('save', async function(this: IUserDocument) {
+UserSchema.pre('save', async function () {
   if (!this.isModified('password')) return;
   this.password = await bcrypt.hash(this.password, 10);
 });
 
-UserSchema.methods.comparePassword = async function(this: IUserDocument, candidatePassword: string): Promise<boolean> {
+UserSchema.methods.comparePassword = async function (candidatePassword: string): Promise<boolean> {
   return await bcrypt.compare(candidatePassword, this.password);
 };
 

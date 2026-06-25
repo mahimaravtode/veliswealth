@@ -1,75 +1,90 @@
-import { Router, Response } from 'express';
+import { Router, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import User from '../models/User';
-import { AuthRequest } from '../types';
+import { validate } from '../middleware/validate';
+import { registerSchema, loginSchema } from '../middleware/schemas';
 
 const router = Router();
 
-router.post('/refresh', async (req: AuthRequest, res: Response) => {
+const JWT_SECRET = process.env.JWT_SECRET!;
+const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || JWT_SECRET;
+
+function signToken(userId: string): string {
+  return jwt.sign({ userId }, JWT_SECRET, { expiresIn: '1d' });
+}
+
+function signRefreshToken(userId: string): string {
+  return jwt.sign({ userId }, JWT_REFRESH_SECRET, { expiresIn: '30d' });
+}
+
+router.post('/refresh', async (req: Request, res: Response) => {
   const { refreshToken } = req.body;
-  if (!refreshToken) {
-    res.status(401).json({ message: 'Refresh token required' });
-    return;
-  }
+  if (!refreshToken) return res.status(401).json({ message: 'Refresh token required' });
 
   try {
-    const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET as string) as { userId: string };
-    const token = jwt.sign({ userId: decoded.userId }, process.env.JWT_SECRET as string, { expiresIn: '15m' });
+    const decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET) as { userId: string };
+    const token = signToken(decoded.userId);
     res.json({ token });
-  } catch (err) {
+  } catch {
     res.status(403).json({ message: 'Invalid refresh token' });
   }
 });
 
-router.post('/register', async (req: AuthRequest, res: Response) => {
+router.post('/register', validate(registerSchema), async (req: Request, res: Response) => {
   try {
     const { name, email, password } = req.body;
-    console.log(`Registration attempt: ${email}`);
-    
-    let user = await User.findOne({ email });
-    if (user) {
-      console.log('User already exists');
-      res.status(400).json({ message: 'User already exists' });
-      return;
+
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: 'Name, email, and password are required' });
     }
 
-    user = new User({ name, email, password });
-    await user.save();
-    console.log('User saved successfully');
+    if (password.length < 6) {
+      return res.status(400).json({ message: 'Password must be at least 6 characters' });
+    }
 
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET as string, { expiresIn: '15m' });
-    const refreshToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET as string, { expiresIn: '7d' });
-    res.status(201).json({ token, refreshToken, user: { id: user._id, name, email } });
-  } catch (error: any) {
-    console.error('Registration Error Details:', error);
-    res.status(500).json({ 
-      message: 'Server error during registration', 
-      error: error.message 
+    const existing = await User.findOne({ email });
+    if (existing) {
+      return res.status(400).json({ message: 'User already exists' });
+    }
+
+    const user = new User({ name, email, password });
+    await user.save();
+
+    const token = signToken(user._id.toString());
+    const refreshToken = signRefreshToken(user._id.toString());
+    res.status(201).json({
+      token,
+      refreshToken,
+      user: { id: user._id, name, email, role: user.role }
     });
+  } catch (error: any) {
+    res.status(500).json({ message: 'Server error during registration' });
   }
 });
 
-router.post('/login', async (req: AuthRequest, res: Response) => {
+router.post('/login', validate(loginSchema), async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
-    
-    const user = await User.findOne({ email });
-    if (!user) {
-      res.status(400).json({ message: 'Invalid credentials' });
-      return;
+
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email and password are required' });
     }
+
+    const user = await User.findOne({ email });
+    if (!user) return res.status(400).json({ message: 'Invalid credentials' });
 
     const isMatch = await user.comparePassword(password);
-    if (!isMatch) {
-      res.status(400).json({ message: 'Invalid credentials' });
-      return;
-    }
+    if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
 
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET as string, { expiresIn: '15m' });
-    const refreshToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET as string, { expiresIn: '7d' });
-    res.json({ token, refreshToken, user: { id: user._id, name: user.name, email: user.email } });
+    const token = signToken(user._id.toString());
+    const refreshToken = signRefreshToken(user._id.toString());
+    res.json({
+      token,
+      refreshToken,
+      user: { id: user._id, name: user.name, email: user.email, role: user.role }
+    });
   } catch (error: any) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    res.status(500).json({ message: 'Server error' });
   }
 });
 

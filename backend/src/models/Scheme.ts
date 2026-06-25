@@ -1,7 +1,14 @@
-import mongoose, { Schema, Document } from 'mongoose';
-import { IScheme } from '../types';
+import mongoose, { Document, Schema } from 'mongoose';
 
-export interface ISchemeDocument extends Omit<IScheme, '_id'>, Document {}
+export interface IScheme {
+  schemeCode: string;
+  schemeName: string;
+  category?: string;
+  currentNav?: number;
+  threeYearReturns?: number;
+}
+
+export interface ISchemeDocument extends IScheme, Document {}
 
 const SchemeSchema = new Schema<ISchemeDocument>({
   schemeCode: { type: String, required: true, unique: true },

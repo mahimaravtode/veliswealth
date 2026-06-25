@@ -1,33 +1,29 @@
-import { Router, Response, NextFunction } from 'express';
-import { auth } from '../middleware/auth';
+import { Router, Request, Response, NextFunction } from 'express';
+import auth from '../middleware/auth';
 import User from '../models/User';
-import { AuthRequest } from '../types';
 
 const router = Router();
 
-const isAdmin = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+const isAdmin = async (req: Request, res: Response, next: NextFunction) => {
   const user = await User.findById(req.userId);
-  if (user?.role !== 'Admin') {
-    res.status(403).json({ message: 'Access denied' });
-    return;
-  }
+  if (user?.role !== 'Admin') return res.status(403).json({ message: 'Access denied' });
   next();
 };
 
-router.get('/users', auth, isAdmin, async (req: AuthRequest, res: Response) => {
+router.get('/users', auth, isAdmin, async (req: Request, res: Response) => {
   try {
     const users = await User.find().select('-password');
     res.json(users);
-  } catch (error: any) {
+  } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }
 });
 
-router.patch('/users/:id/kyc', auth, isAdmin, async (req: AuthRequest, res: Response) => {
+router.patch('/users/:id/kyc', auth, isAdmin, async (req: Request, res: Response) => {
   try {
     await User.findByIdAndUpdate(req.params.id, { 'profile.kycStatus': req.body.status });
     res.json({ message: 'KYC updated' });
-  } catch (error: any) {
+  } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }
 });

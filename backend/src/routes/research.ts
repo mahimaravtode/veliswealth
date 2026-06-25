@@ -1,14 +1,13 @@
-import { Router, Response } from 'express';
+import { Router, Request, Response } from 'express';
 import Report from '../models/Report';
-import { AuthRequest } from '../types';
 
 const router = Router();
 
-router.get('/reports', async (req: AuthRequest, res: Response) => {
+router.get('/reports', async (req: Request, res: Response) => {
   try {
     const reports = await Report.find().sort({ date: -1 });
     res.json(reports);
-  } catch (error: any) {
+  } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }
 });

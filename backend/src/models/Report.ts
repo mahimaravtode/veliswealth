@@ -1,7 +1,13 @@
-import mongoose, { Schema, Document } from 'mongoose';
-import { IReport } from '../types';
+import mongoose, { Document, Schema } from 'mongoose';
 
-export interface IReportDocument extends Omit<IReport, '_id'>, Document {}
+export interface IReport {
+  title?: string;
+  description?: string;
+  category?: string;
+  date?: Date;
+}
+
+export interface IReportDocument extends IReport, Document {}
 
 const ReportSchema = new Schema<IReportDocument>({
   title: String,

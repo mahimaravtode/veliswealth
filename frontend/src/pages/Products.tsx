@@ -1,17 +1,18 @@
-import { useEffect, useState, useMemo } from 'react';
-import { Card, CardContent } from "@/components/ui/card";
+import React, { useEffect, useState, useMemo } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
-  Search, ArrowUpDown, BarChart3, RefreshCw, Loader2, Clock, ChevronDown, ChevronUp
+  Search, TrendingUp, TrendingDown, ArrowUpDown, Filter, BarChart3,
+  Star, Info, RefreshCw, Loader2, IndianRupee, Clock, ChevronDown, ChevronUp
 } from "lucide-react";
 import { apiRequest } from '@/lib/api';
-
-const formatCurrency = (val: number) =>
-  new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 }).format(val);
+import { formatCurrencyDec as formatCurrency } from '@/lib/utils';
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 
 const CATEGORIES = ['All', 'Equity', 'Debt', 'Hybrid', 'Index', 'ELSS', 'Solution Oriented'];
 
@@ -25,6 +26,8 @@ export default function Products() {
   const [selectedFund, setSelectedFund] = useState<any>(null);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
+  useEffect(() => { fetchSchemes(); }, []);
+
   const fetchSchemes = async () => {
     try {
       const data = await apiRequest('/market/schemes');
@@ -36,8 +39,6 @@ export default function Products() {
       setLoading(false);
     }
   };
-
-  useEffect(() => { fetchSchemes(); }, []);
 
   const filteredSchemes = useMemo(() => {
     let result = [...schemes];

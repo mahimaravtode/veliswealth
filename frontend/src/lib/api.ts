@@ -1,9 +1,12 @@
 import { useAuthStore } from '@/store/useAuthStore';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import { API_BASE } from '@/lib/config';
 
 export async function apiRequest(endpoint: string, options: RequestInit = {}): Promise<any> {
-  const { token, refreshToken, setAuth, logout } = useAuthStore.getState();
+  const state = useAuthStore.getState();
+  const token = state.token;
+  const refreshToken = state.refreshToken;
+  const setAuth = state.setAuth;
+  const logout = state.logout;
 
   const headers = {
     'Content-Type': 'application/json',
@@ -11,35 +14,75 @@ export async function apiRequest(endpoint: string, options: RequestInit = {}): P
     ...options.headers,
   };
 
-  let response = await fetch(`${API_URL}${endpoint}`, {
-    ...options,
-    headers,
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE}${endpoint}`, {
+      ...options,
+      headers,
+    });
+  } catch {
+    throw new Error(
+      'Cannot reach the server. Start the backend: cd backend && npm run dev'
+    );
+  }
 
-  if (response.status === 401 && refreshToken) {
-    try {
-      const refreshResponse = await fetch(`${API_URL}/auth/refresh`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refreshToken }),
-      });
-
-      if (refreshResponse.ok) {
-        const { token: newToken } = await refreshResponse.json();
-        setAuth(useAuthStore.getState().user!, newToken);
-        response = await fetch(`${API_URL}${endpoint}`, {
-          ...options,
-          headers: { ...headers, 'Authorization': `Bearer ${newToken}` },
+  // Handle Token Expiration
+  if (response.status === 401) {
+    if (refreshToken) {
+      console.log(`Token expired for ${endpoint}, attempting refresh...`);
+      try {
+        const refreshResponse = await fetch(`${API_BASE}/auth/refresh`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refreshToken }),
         });
-      } else {
+
+        if (refreshResponse.ok) {
+          const data = await refreshResponse.json();
+          console.log('Token refreshed successfully');
+          
+          if (state.user) {
+            setAuth(state.user, data.token);
+          }
+
+          const newHeaders = {
+              ...headers,
+              'Authorization': `Bearer ${data.token}`
+          };
+          response = await fetch(`${API_BASE}${endpoint}`, { ...options, headers: newHeaders });
+        } else {
+          console.warn('Refresh token invalid or expired, logging out');
+          logout();
+          if (typeof window !== 'undefined') window.location.href = '/login';
+          return; // Stop processing
+        }
+      } catch (err) {
+        console.error('Token refresh failed:', err);
         logout();
+        if (typeof window !== 'undefined') window.location.href = '/login';
+        return;
       }
-    } catch {
+    } else {
+      console.warn(`Unauthorized [401] for ${endpoint} and no refresh token available, logging out`);
       logout();
+      if (typeof window !== 'undefined') window.location.href = '/login';
+      return;
     }
   }
 
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.message || 'Something went wrong');
+  // Check if response is JSON
+  const contentType = response.headers.get('content-type');
+  let data;
+  if (contentType && contentType.includes('application/json')) {
+    data = await response.json();
+  } else {
+    data = { message: await response.text() };
+  }
+
+  if (!response.ok) {
+    console.error(`API Error [${response.status}] ${endpoint}:`, data);
+    throw new Error(data.message || `API Error ${response.status}`);
+  }
+
   return data;
 }

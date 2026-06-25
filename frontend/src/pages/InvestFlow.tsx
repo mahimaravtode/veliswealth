@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { CheckCircle2, ArrowRight, CreditCard, Landmark } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { CheckCircle2, ArrowRight, CreditCard, Landmark, ShieldCheck } from "lucide-react";
 
 export default function InvestFlow() {
   const [step, setStep] = useState(1);
@@ -16,6 +17,8 @@ export default function InvestFlow() {
         <h1 className="text-3xl font-bold tracking-tight">Invest in {fund.name}</h1>
         <p className="text-muted-foreground">Follow 3 easy steps to complete your paperless investment.</p>
       </div>
+
+      {/* Progress Stepper */}
       <div className="flex justify-between items-center mb-8 relative">
         <StepNode active={step >= 1} current={step === 1} label="Amount" number={1} />
         <div className={`h-1 flex-1 mx-4 rounded ${step > 1 ? 'bg-primary' : 'bg-border'}`} />
@@ -23,6 +26,7 @@ export default function InvestFlow() {
         <div className={`h-1 flex-1 mx-4 rounded ${step > 2 ? 'bg-primary' : 'bg-border'}`} />
         <StepNode active={step >= 3} current={step === 3} label="Confirm" number={3} />
       </div>
+
       {step === 1 && (
         <Card>
           <CardHeader>
@@ -43,6 +47,7 @@ export default function InvestFlow() {
           </CardContent>
         </Card>
       )}
+
       {step === 2 && (
         <Card>
           <CardHeader>
@@ -56,6 +61,7 @@ export default function InvestFlow() {
           </CardContent>
         </Card>
       )}
+
       {step === 3 && (
         <Card className="border-success/30 bg-success/10">
           <CardContent className="pt-10 pb-10 text-center space-y-6">

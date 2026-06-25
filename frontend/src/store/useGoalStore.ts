@@ -42,7 +42,7 @@ export const useGoalStore = create<GoalState>((set) => ({
     try {
       const data = await apiRequest('/goals');
       set({ goals: data, loading: false });
-    } catch {
+    } catch (err) {
       set({ loading: false });
     }
   },
@@ -55,7 +55,7 @@ export const useGoalStore = create<GoalState>((set) => ({
         body: JSON.stringify(goal),
       });
       set((state) => ({ goals: [...state.goals, data], loading: false }));
-    } catch {
+    } catch (err) {
       set({ loading: false });
     }
   },
@@ -65,7 +65,7 @@ export const useGoalStore = create<GoalState>((set) => ({
     try {
       await apiRequest(`/goals/${id}`, { method: 'DELETE' });
       set((state) => ({ goals: state.goals.filter((g) => g._id !== id), loading: false }));
-    } catch {
+    } catch (err) {
       set({ loading: false });
     }
   },
@@ -81,7 +81,7 @@ export const useGoalStore = create<GoalState>((set) => ({
         goals: state.goals.map((g) => (g._id === id ? data : g)),
         loading: false,
       }));
-    } catch {
+    } catch (err) {
       set({ loading: false });
     }
   },
