@@ -45,7 +45,7 @@ export default function StockDetailDialog({ symbol, open, onClose }: StockDetail
     setLoading(true);
     setQuote(null);
 
-    apiRequest(`/yahoo/quote/${symbol}`)
+    apiRequest(`/yahoo/quote/${encodeURIComponent(symbol)}`)
       .then((data) => {
         if (!controller.signal.aborted) {
           setQuote(data || null);

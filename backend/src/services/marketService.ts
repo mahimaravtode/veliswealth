@@ -53,9 +53,26 @@ export function addSSEClient(res: Response) {
 export function broadcastToClients(data: any) {
   const payload = `data: ${JSON.stringify(data)}\n\n`;
   for (const client of sseClients) {
-    client.write(payload);
+    try {
+      client.write(payload);
+    } catch {
+      sseClients.delete(client);
+    }
   }
 }
+
+// Heartbeat to keep SSE connections alive
+setInterval(() => {
+  if (sseClients.size > 0) {
+    for (const client of sseClients) {
+      try {
+        client.write(': keepalive\n\n');
+      } catch {
+        sseClients.delete(client);
+      }
+    }
+  }
+}, 15000);
 
 export async function startMarketSimulation() {
   console.log('Starting real-time market simulation...');
@@ -277,16 +294,26 @@ export async function getChart(symbol: string, period1?: string, interval?: stri
   try {
     let range = '1mo';
     if (period1) {
-      const now = Date.now();
-      const start = new Date(period1).getTime();
-      const days = (now - start) / (1000 * 60 * 60 * 24);
-      if (days <= 5) range = '5d';
-      else if (days <= 30) range = '1mo';
-      else if (days <= 90) range = '3mo';
-      else if (days <= 180) range = '6mo';
-      else if (days <= 365) range = '1y';
-      else if (days <= 1825) range = '5y';
-      else range = 'max';
+      // Handle range strings directly (e.g. '1mo', '3mo', '1y')
+      const rangeMap: Record<string, string> = {
+        '1wk': '5d', '1mo': '1mo', '3mo': '3mo', '6mo': '6mo', '1y': '1y', '5y': '5y',
+      };
+      if (rangeMap[period1]) {
+        range = rangeMap[period1];
+      } else {
+        const now = Date.now();
+        const start = new Date(period1).getTime();
+        if (!isNaN(start)) {
+          const days = (now - start) / (1000 * 60 * 60 * 24);
+          if (days <= 5) range = '5d';
+          else if (days <= 30) range = '1mo';
+          else if (days <= 90) range = '3mo';
+          else if (days <= 180) range = '6mo';
+          else if (days <= 365) range = '1y';
+          else if (days <= 1825) range = '5y';
+          else range = 'max';
+        }
+      }
     }
     const chartData = await fetchYahooChart(symbol, range, interval || '1d');
     if (chartData.length > 0) return chartData;

@@ -105,7 +105,7 @@ if (isMarketHoliday()) {
 } else if (process.env.NODE_ENV !== 'production') {
     updateDailyMarketData().then(() => startMarketSimulation());
 } else {
-    updateDailyMarketData();
+    updateDailyMarketData().then(() => startMarketSimulation());
 }
 
 const PORT = process.env.PORT || 5000;

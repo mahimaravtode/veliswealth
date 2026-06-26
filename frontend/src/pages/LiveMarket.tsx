@@ -148,7 +148,7 @@ export default function LiveMarket() {
     setSelectedIndex(index);
     setIndexLoading(true);
     try {
-      const chartData = await apiRequest(`/yahoo/chart/${index.symbol}?range=${indexPeriod}&interval=1d`);
+      const chartData = await apiRequest(`/yahoo/chart/${encodeURIComponent(index.symbol)}?range=${indexPeriod}&interval=1d`);
       setIndexChart(chartData || []);
     } catch {
       setIndexChart([]);
