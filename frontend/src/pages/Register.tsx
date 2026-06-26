@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,7 +40,7 @@ export default function Register() {
   const navigate = useNavigate();
   const setAuth = useAuthStore((state) => state.setAuth);
 
-  const handleGoogleCredential = async (credential: string) => {
+  const handleGoogleCredential = useCallback(async (credential: string) => {
     setServerError('');
     try {
       const data = await apiRequest('/auth/google', {
@@ -52,22 +52,39 @@ export default function Register() {
     } catch (err: any) {
       setServerError(err.message);
     }
-  };
+  }, [navigate, setAuth]);
+
+  const callbackRef = useRef(handleGoogleCredential);
+  callbackRef.current = handleGoogleCredential;
 
   useEffect(() => {
-    if (!window.google?.accounts?.id) return;
-    window.google.accounts.id.initialize({
-      client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
-      callback: (response: any) => handleGoogleCredential(response.credential),
-    });
-    if (googleBtnRef.current) {
-      googleBtnRef.current.innerHTML = '';
-      window.google.accounts.id.renderButton(googleBtnRef.current, {
-        theme: 'outline',
-        size: 'large',
-        width: 350,
-        text: 'signup_with',
+    const initGoogle = () => {
+      if (!window.google?.accounts?.id) return;
+      window.google.accounts.id.initialize({
+        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+        callback: (response: any) => callbackRef.current(response.credential),
       });
+      if (googleBtnRef.current) {
+        googleBtnRef.current.innerHTML = '';
+        window.google.accounts.id.renderButton(googleBtnRef.current, {
+          theme: 'outline',
+          size: 'large',
+          width: 350,
+          text: 'signup_with',
+        });
+      }
+    };
+
+    if (window.google?.accounts?.id) {
+      initGoogle();
+    } else {
+      const checkInterval = setInterval(() => {
+        if (window.google?.accounts?.id) {
+          clearInterval(checkInterval);
+          initGoogle();
+        }
+      }, 100);
+      return () => clearInterval(checkInterval);
     }
   }, []);
 
