@@ -57,6 +57,7 @@ export default function Dashboard() {
   const indices = movers.indices || [];
   const topGainers = (movers.gainers || []).slice(0, 5);
   const topLosers = (movers.losers || []).slice(0, 5);
+  const isHoliday = marketStatus?.status === 'holiday';
 
   const allocationData = [
     { name: 'Equity', value: 60, color: '#2563eb' },
@@ -74,7 +75,7 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <MarketTicker />
+      {marketStatus?.status !== 'holiday' && <MarketTicker />}
 
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
@@ -85,6 +86,10 @@ export default function Dashboard() {
           {marketStatus?.isOpen ? (
             <Badge variant="outline" className="h-6 gap-1 border-success/30 text-success bg-success/10">
               <Activity className="h-3 w-3" /> Live
+            </Badge>
+          ) : marketStatus?.status === 'holiday' ? (
+            <Badge variant="outline" className="h-6 gap-1 border-muted-foreground/30 text-muted-foreground bg-muted/10">
+              <Clock className="h-3 w-3" /> Market Holiday
             </Badge>
           ) : (
             <Badge variant="outline" className="h-6 gap-1 border-warning/30 text-warning bg-warning/10">
@@ -129,6 +134,7 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
+        {!isHoliday && (
         <Card className="border-0 shadow-md">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Market Advances</CardTitle>
@@ -139,6 +145,8 @@ export default function Dashboard() {
             <p className="text-xs text-muted-foreground">Stocks up today</p>
           </CardContent>
         </Card>
+      )}
+      {!isHoliday && (
         <Card className="border-0 shadow-md">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Market Declines</CardTitle>
@@ -149,9 +157,10 @@ export default function Dashboard() {
             <p className="text-xs text-muted-foreground">Stocks down today</p>
           </CardContent>
         </Card>
+      )}
       </div>
 
-      {indices.length > 0 && (
+      {!isHoliday && indices.length > 0 && (
         <div>
           <h2 className="text-lg font-bold mb-3 flex items-center gap-2">
             <Activity className="h-5 w-5 text-primary" /> Live Market Indices
@@ -184,11 +193,12 @@ export default function Dashboard() {
           </CardContent>
         </Card>
         <div className="col-span-3 space-y-4">
-          <LiveWatchlist />
+          {!isHoliday && <LiveWatchlist />}
           <FinancialHealthCard />
         </div>
       </div>
 
+      {!isHoliday && (
       <div className="grid gap-6 md:grid-cols-2">
         <Card className="border-0 shadow-md">
           <CardHeader className="pb-3">
@@ -227,8 +237,9 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
+      )}
 
-      {topGainers.length > 0 && (
+      {!isHoliday && topGainers.length > 0 && (
         <Card className="border-0 shadow-md">
           <CardHeader>
             <CardTitle className="text-base">All Tracked Stocks</CardTitle>

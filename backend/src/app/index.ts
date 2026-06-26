@@ -6,6 +6,7 @@ import cron from 'node-cron';
 
 // Assuming these are also converted or have types
 import { updateDailyMarketData, startMarketSimulation } from '../services/marketService';
+import { isMarketHoliday } from '../utils/marketHours';
 
 const app = express();
 
@@ -84,6 +85,7 @@ app.get('/', (req: Request, res: Response) => {
 
 // Cron Job — runs every 5 minutes on weekdays, but only fetches fresh data during market hours
 cron.schedule('*/5 * * * 1-5', () => {
+  if (isMarketHoliday()) return;
   const now = new Date();
   const istOffset = 5.5 * 60 * 60 * 1000;
   const ist = new Date(now.getTime() + istOffset);
@@ -96,9 +98,11 @@ cron.schedule('*/5 * * * 1-5', () => {
   }
 });
 
-// Always fetch data once on startup (even outside market hours) so we have last closing prices
-// In dev mode, also start the simulation for SSE streaming
-if (process.env.NODE_ENV !== 'production') {
+// Fetch data once on startup for last closing prices, unless today is a holiday
+// In dev mode, also start the simulation for SSE streaming (skipped on holidays)
+if (isMarketHoliday()) {
+    console.log('Market holiday — skipping data fetch and simulation.');
+} else if (process.env.NODE_ENV !== 'production') {
     updateDailyMarketData().then(() => startMarketSimulation());
 } else {
     updateDailyMarketData();

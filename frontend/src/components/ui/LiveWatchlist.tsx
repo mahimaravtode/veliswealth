@@ -68,6 +68,7 @@ export default function LiveWatchlist() {
   const [fetching, setFetching] = useState(false);
   const chartCache = useRef<Map<string, { date: string; close: number }[]>>(new Map());
   const isMarketOpen = marketStatus?.isOpen === true;
+  const isHoliday = marketStatus?.status === 'holiday';
 
   const fetchQuotes = useCallback(async () => {
     if (watchlistSymbols.length === 0) {
@@ -133,9 +134,9 @@ export default function LiveWatchlist() {
     let cancelled = false;
     fetchCharts();
     const timer = setTimeout(() => { if (!cancelled) fetchQuotes(); }, 0);
-    const interval = setInterval(() => { if (!cancelled) fetchQuotes(); }, 60000);
+    const interval = setInterval(() => { if (!cancelled && !isHoliday) fetchQuotes(); }, 60000);
     return () => { cancelled = true; clearTimeout(timer); clearInterval(interval); };
-  }, [fetchQuotes, fetchCharts]);
+  }, [fetchQuotes, fetchCharts, isHoliday]);
 
   useEffect(() => {
     localStorage.setItem('watchlistSymbols', JSON.stringify(watchlistSymbols));
@@ -204,6 +205,10 @@ export default function LiveWatchlist() {
             {marketStatus?.isOpen ? (
               <Badge variant="outline" className="h-5 gap-1 border-success/30 text-success bg-success/10 text-[10px]">
                 <Activity className="h-2.5 w-2.5" /> Live
+              </Badge>
+            ) : marketStatus?.status === 'holiday' ? (
+              <Badge variant="outline" className="h-5 gap-1 border-muted-foreground/30 text-muted-foreground bg-muted/10 text-[10px]">
+                <Clock className="h-2.5 w-2.5" /> Holiday
               </Badge>
             ) : (
               <Badge variant="outline" className="h-5 gap-1 border-warning/30 text-warning bg-warning/10 text-[10px]">

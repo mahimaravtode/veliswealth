@@ -36,7 +36,7 @@ router.put('/:id', auth, async (req: Request, res: Response) => {
     const updated = await Loan.findOneAndUpdate(
       { _id: req.params.id, userId: req.userId },
       req.body,
-      { new: true }
+      { returnDocument: 'after' }
     );
     res.json(updated);
   } catch (error: any) {

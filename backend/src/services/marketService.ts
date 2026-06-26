@@ -222,7 +222,7 @@ export async function updateDailyMarketData() {
         unchanged,
         stockTraded: advances + declines + unchanged,
       },
-      { upsert: true, new: true }
+      { upsert: true, returnDocument: 'after' }
     );
 
     const removed = await MarketMover.deleteMany({ symbol: { $nin: WATCHLIST_SYMBOLS } });

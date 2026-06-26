@@ -107,9 +107,11 @@ export default function Research() {
   useEffect(() => {
     fetchData();
     fetchMfSchemes();
-    const interval = setInterval(fetchData, 30000);
+    const interval = setInterval(() => {
+      if (marketStatus?.status !== 'holiday') fetchData();
+    }, 30000);
     return () => clearInterval(interval);
-  }, [fetchData]);
+  }, [fetchData, marketStatus?.status]);
 
   // Stock search via Yahoo Finance
   const handleStockSearch = useCallback(async (query: string) => {
@@ -227,6 +229,10 @@ export default function Research() {
           {marketStatus?.isOpen ? (
             <Badge variant="outline" className="h-6 gap-1 border-success/30 text-success bg-success/10">
               <Activity className="h-3 w-3" /> Live
+            </Badge>
+          ) : marketStatus?.status === 'holiday' ? (
+            <Badge variant="outline" className="h-6 gap-1 border-muted-foreground/30 text-muted-foreground bg-muted/10">
+              <Clock className="h-3 w-3" /> Market Holiday
             </Badge>
           ) : (
             <Badge variant="outline" className="h-6 gap-1 border-warning/30 text-warning bg-warning/10">

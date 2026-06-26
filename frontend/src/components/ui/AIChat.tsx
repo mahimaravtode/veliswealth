@@ -934,7 +934,7 @@ export default function AIChat({ isOpen, onClose }: AIChatProps) {
                           <div className="flex items-center gap-2 rounded-lg border border-border/50 bg-background px-2.5 py-1.5">
                             {getFileIcon(att.file.type)}
                             <div className="min-w-0">
-                              <p className="max-w-[100px] truncate text-xs font-medium">
+                              <p className="max-w-25 truncate text-xs font-medium">
                                 {att.name}
                               </p>
                               <p className="text-[10px] text-muted-foreground">

@@ -242,7 +242,7 @@ router.put('/:id', auth, async (req: Request, res: Response) => {
     const updated = await Transaction.findOneAndUpdate(
       { _id: req.params.id, userId: req.userId },
       req.body,
-      { new: true }
+      { returnDocument: 'after' }
     );
     if (!updated) return res.status(404).json({ message: 'Transaction not found' });
     res.json(updated);

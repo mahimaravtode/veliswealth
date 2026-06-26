@@ -132,9 +132,11 @@ export default function LiveMarket() {
 
   useEffect(() => {
     fetchOverview();
-    const interval = setInterval(fetchOverview, 60000);
+    const interval = setInterval(() => {
+      if (marketStatus?.status !== 'holiday') fetchOverview();
+    }, 60000);
     return () => clearInterval(interval);
-  }, [fetchOverview]);
+  }, [fetchOverview, marketStatus?.status]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -193,6 +195,10 @@ export default function LiveMarket() {
           {marketStatus?.isOpen ? (
             <Badge variant="outline" className="h-6 gap-1 border-success/30 text-success bg-success/10">
               <Activity className="h-3 w-3" /> Live
+            </Badge>
+          ) : marketStatus?.status === 'holiday' ? (
+            <Badge variant="outline" className="h-6 gap-1 border-muted-foreground/30 text-muted-foreground bg-muted/10">
+              <Clock className="h-3 w-3" /> Market Holiday
             </Badge>
           ) : (
             <Badge variant="outline" className="h-6 gap-1 border-warning/30 text-warning bg-warning/10">

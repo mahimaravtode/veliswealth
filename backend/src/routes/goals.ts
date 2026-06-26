@@ -39,7 +39,7 @@ router.put('/:id', auth, async (req: Request, res: Response) => {
     const updatedGoal = await Goal.findOneAndUpdate(
       { _id: req.params.id, userId: req.userId },
       req.body,
-      { new: true }
+      { returnDocument: 'after' }
     );
     res.json(updatedGoal);
   } catch (error) {
