@@ -7,6 +7,7 @@ import {
   useLocation,
   Navigate,
 } from "react-router-dom";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   PieChart,
@@ -497,6 +498,7 @@ export default function App() {
   const [showSplash, setShowSplash] = useState(true);
 
   return (
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID || ''}>
     <Router>
       <TooltipProvider>
         <AnimatePresence mode="wait">
@@ -633,5 +635,6 @@ export default function App() {
         </Routes>
       </TooltipProvider>
     </Router>
+    </GoogleOAuthProvider>
   );
 }

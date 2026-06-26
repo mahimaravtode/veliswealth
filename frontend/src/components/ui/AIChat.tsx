@@ -23,7 +23,6 @@ import {
   Check,
   RotateCcw,
   Square,
-  StopCircle,
 } from 'lucide-react';
 import Markdown from 'react-markdown';
 import { apiRequest } from '@/lib/api';

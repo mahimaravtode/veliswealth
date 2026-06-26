@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,29 +7,67 @@ import { FinLeapLogo } from "@/components/FinLeapLogo";
 import { apiRequest } from '@/lib/api';
 import { useAuthStore } from '@/store/useAuthStore';
 
+declare global {
+  interface Window {
+    google?: any;
+  }
+}
+
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [serverError, setServerError] = useState('');
   const [loading, setLoading] = useState(false);
-  
+  const googleBtnRef = useRef<HTMLDivElement>(null);
+
   const navigate = useNavigate();
   const setAuth = useAuthStore((state) => state.setAuth);
 
+  const handleGoogleCredential = async (credential: string) => {
+    setServerError('');
+    try {
+      const data = await apiRequest('/auth/google', {
+        method: 'POST',
+        body: JSON.stringify({ credential }),
+      });
+      setAuth(data.user, data.token, data.refreshToken);
+      navigate('/');
+    } catch (err: any) {
+      setServerError(err.message);
+    }
+  };
+
+  useEffect(() => {
+    if (!window.google?.accounts?.id) return;
+    window.google.accounts.id.initialize({
+      client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+      callback: (response: any) => handleGoogleCredential(response.credential),
+    });
+    if (googleBtnRef.current) {
+      googleBtnRef.current.innerHTML = '';
+      window.google.accounts.id.renderButton(googleBtnRef.current, {
+        theme: 'outline',
+        size: 'large',
+        width: 350,
+        text: 'signin_with',
+      });
+    }
+  }, []);
+
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {};
-    
+
     if (!email) {
       newErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(email)) {
       newErrors.email = 'Please enter a valid email address';
     }
-    
+
     if (!password) {
       newErrors.password = 'Password is required';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -37,9 +75,9 @@ export default function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setServerError('');
-    
+
     if (!validateForm()) return;
-    
+
     setLoading(true);
 
     try {
@@ -75,11 +113,23 @@ export default function Login() {
                 {serverError}
               </div>
             )}
+
+            <div className="flex justify-center" ref={googleBtnRef} />
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-2 text-muted-foreground">Or sign in with email</span>
+              </div>
+            </div>
+
             <div className="space-y-2">
               <label className="text-sm font-medium">Email</label>
-              <Input 
-                type="email" 
-                placeholder="m@example.com" 
+              <Input
+                type="email"
+                placeholder="m@example.com"
                 className={errors.email ? "border-destructive focus-visible:ring-destructive" : ""}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -88,8 +138,8 @@ export default function Login() {
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Password</label>
-              <Input 
-                type="password" 
+              <Input
+                type="password"
                 className={errors.password ? "border-destructive focus-visible:ring-destructive" : ""}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
